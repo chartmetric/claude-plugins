@@ -1,7 +1,7 @@
 {
   "name": "cm-skills",
-  "description": "Chartmetric team skills for Claude Code: Slack thread summaries, session work reports to Slack, Slack-to-Asana task filing, staging companion PRs, and ClickHouse query benchmarking, and multi-repo PR orchestration.",
-  "version": "0.2.1",
+  "description": "Chartmetric team skills for Claude Code: Slack thread summaries, session work reports, Slack-to-Asana task filing, staging companion PRs, ClickHouse benchmarking, multi-repo PR orchestration, and read-only database querying.",
+  "version": "0.3.0",
   "author": {
     "name": "Chartmetric Engineering"
   }
