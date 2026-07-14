@@ -7,13 +7,14 @@ description: Plan and ship one piece of work that spans multiple chartmetric rep
 
 Chartmetric work often spans repos (an API change + the frontend that consumes it). One session can handle all of it: the session just needs to be opened on a folder that contains the repos (e.g. `~/code/chartmetric`), or have them added as additional working directories.
 
-## Repo mapping
+## Repo mapping (task type → repo)
 
-- chartmetric-api = backend
-- chartmetric-web-app = main app frontend
-- chartmetric_data_script = refresh server
-- melodi-worker = worker
-- chartmetric-one = flow frontend
+- main app frontend = chartmetric-web-app
+- main app backend / API = chartmetric-api
+- refresh server = chartmetric_data_script
+- data sync issues = chartmetric_data_script and/or data_infra
+- flow UI = chartmetric-one
+- background worker = melodi-worker
 
 ## Workflow
 
