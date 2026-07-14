@@ -22,6 +22,7 @@ Or inside a Claude Code session: `/plugin` → browse `chartmetric-tools` → in
 | `clickhouse-benchmark` | Benchmark/compare ClickHouse queries via system.query_log (P50/P90/P99, bytes read, memory) |
 | `multi-repo-pr` | One piece of work spanning several repos: one branch + one PR per repo, cross-linked |
 | `query-database` | READ-ONLY queries against RDS/ClickHouse/Elasticsearch/Snowflake via devin-secrets.env (local sessions only) |
+| `ship-pr` | Finalize session PRs end-to-end: description, assignee = creator, Slack + Asana links (auto-created if missing), reviewer suggestion, PR Preview labels, poll until the preview deploys |
 
 Skills from a plugin are invoked namespaced, e.g. `/cm-skills:slack-summary`.
 
@@ -31,7 +32,7 @@ Plugins auto-update from this repo. To add or change a skill, edit `plugins/cm-s
 
 ## Requirements
 
-- `slack-summary`, `session-report`, `slack-to-asana` need the claude.ai Slack (and Asana) connectors: claude.ai → Settings → Connectors
+- `slack-summary`, `session-report`, `slack-to-asana`, `ship-pr` need the claude.ai Slack (and Asana) connectors: claude.ai → Settings → Connectors (`ship-pr` degrades gracefully — GitHub-only steps still run without them)
 - `clickhouse-benchmark` needs `CLICKHOUSE_HOST` / `CLICKHOUSE_PORT` / `clickhouse_user` / `clickhouse_password` in your shell env
 
 ## Contributing
