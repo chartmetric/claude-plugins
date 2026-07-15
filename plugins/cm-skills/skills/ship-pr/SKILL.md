@@ -154,5 +154,4 @@ Full URLs on their own lines — no markdown-shortened links for PR/preview URLs
 
 - **PR already fully dressed** (has Asana + Slack lines, labels, assignee): verify each item instead of re-doing it; only fill gaps. This skill is idempotent — safe to run twice.
 - **Draft PR**: mark ready for review first (`gh api -X PATCH /repos/<repo>/pulls/<num>` won't do this — use `gh pr ready <num> --repo <repo>`), unless the user wants it kept draft; ask if unclear.
-- **Master PR that needs a staging companion**: mention that `cm-conflict` exists; don't run it unprompted.
 - **User declines the Slack post**: skip Asana auto-creation too (it needs the thread), leave a `TODO` note in `### Notes`, and say what's missing.

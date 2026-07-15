@@ -18,7 +18,6 @@ Or inside a Claude Code session: `/plugin` → browse `chartmetric-tools` → in
 | `slack-summary` | Summarize a Slack thread from its URL |
 | `session-report` | Post a full-context work report (problem / fix / current state / links) to a Slack channel |
 | `slack-to-asana` | File Asana task(s) on Unified CM Tasks from a Slack thread, link PRs, reply in-thread |
-| `cm-conflict` | Create the staging companion PR for a master PR (cherry-pick based) |
 | `clickhouse-benchmark` | Benchmark/compare ClickHouse queries via system.query_log (P50/P90/P99, bytes read, memory) |
 | `multi-repo-pr` | One piece of work spanning several repos: one branch + one PR per repo, cross-linked |
 | `query-database` | READ-ONLY queries against RDS/ClickHouse/Elasticsearch/Snowflake via devin-secrets.env (local sessions only) |
