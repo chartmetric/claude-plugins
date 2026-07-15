@@ -2,38 +2,53 @@
 
 Private plugin marketplace for Chartmetric's Claude Code skills. Access is controlled by this repo's visibility — anyone who can clone it can install from it.
 
+The marketplace ships two plugins:
+
+- **`cm-skills`** — engineering skills (code, PRs, databases, reviews)
+- **`cm-comms`** — team communication & reporting skills (Slack + Asana)
+
+Install whichever you need — or both.
+
 ## Install
 
 ```bash
 claude plugin marketplace add chartmetric/claude-plugins
-claude plugin install cm-skills@chartmetric-tools
+claude plugin install cm-skills@chartmetric-tools    # engineering
+claude plugin install cm-comms@chartmetric-tools     # comms & reporting
 ```
 
-Or inside a Claude Code session: `/plugin` → browse `chartmetric-tools` → install `cm-skills`.
+Or inside a Claude Code session: `/plugin` → browse `chartmetric-tools` → install `cm-skills` and/or `cm-comms`.
 
-## What's in `cm-skills`
+## What's in `cm-skills` (engineering)
+
+| Skill | What it does |
+| --- | --- |
+| `clickhouse-benchmark` | Benchmark/compare ClickHouse queries via system.query_log (P50/P90/P99, bytes read, memory) |
+| `query-database` | READ-ONLY queries against RDS/ClickHouse/Elasticsearch/Snowflake via devin-secrets.env (local sessions only) |
+| `cm-pr-review` | Triage the PRs awaiting your review: discover direct review requests in `chartmetric`, draft a review per PR using each repo's own conventions, then post/approve/skip per PR on confirmation |
+| `cm-takehome-review` | Score candidate take-home PRs against a rubric (runs each branch in a throwaway worktree to verify tests) and write local-only markdown scorecards + a comparison doc — never posts to GitHub |
+| `multi-repo-pr` | One piece of work spanning several repos: one branch + one PR per repo, cross-linked |
+| `ship-pr` | Finalize session PRs end-to-end: description, assignee = creator, Slack + Asana links (auto-created if missing), reviewer suggestion, PR Preview labels, poll until the preview deploys |
+| `explain-code` | Explain code with an ASCII diagram, a step-by-step walkthrough, a gotcha, and a suggested improvement |
+| `write-react-code` | Implement React + TypeScript features following project conventions (ESLint, strict types, context/hook thresholds, file organization, design-system usage) |
+| `frontend-guidelines` | Chartmetric Web App frontend conventions & rules: Tailwind vs SCSS modules, design-system components, import ordering, i18n, TypeScript conventions. Pairs with `write-react-code` |
+
+Invoked as `/cm-skills:<skill>`, e.g. `/cm-skills:cm-pr-review`.
+
+## What's in `cm-comms` (team communication & reporting)
 
 | Skill | What it does |
 | --- | --- |
 | `slack-summary` | Summarize a Slack thread from its URL |
 | `session-report` | Post a full-context work report (problem / fix / current state / links) to a Slack channel |
 | `slack-to-asana` | File Asana task(s) on Unified CM Tasks from a Slack thread, link PRs, reply in-thread |
-| `clickhouse-benchmark` | Benchmark/compare ClickHouse queries via system.query_log (P50/P90/P99, bytes read, memory) |
-| `multi-repo-pr` | One piece of work spanning several repos: one branch + one PR per repo, cross-linked |
-| `query-database` | READ-ONLY queries against RDS/ClickHouse/Elasticsearch/Snowflake via devin-secrets.env (local sessions only) |
-| `ship-pr` | Finalize session PRs end-to-end: description, assignee = creator, Slack + Asana links (auto-created if missing), reviewer suggestion, PR Preview labels, poll until the preview deploys |
-| `cm-pr-review` | Triage the PRs awaiting your review: discover direct review requests in `chartmetric`, draft a review per PR using each repo's own conventions, then post/approve/skip per PR on confirmation |
-| `cm-takehome-review` | Score candidate take-home PRs against a rubric (runs each branch in a throwaway worktree to verify tests) and write local-only markdown scorecards + a comparison doc — never posts to GitHub |
 | `release-notes` | Generate (and optionally post) the "Chartmetric Production Release" `#product-updates` message from a deploy message / PR / release tag, resolving Asana tasks and combining FE+BE release waves |
-| `explain-code` | Explain code with an ASCII diagram, a step-by-step walkthrough, a gotcha, and a suggested improvement |
-| `write-react-code` | Implement React + TypeScript features following project conventions (ESLint, strict types, context/hook thresholds, file organization, design-system usage) |
-| `frontend-guidelines` | Chartmetric Web App frontend conventions & rules: Tailwind vs SCSS modules, design-system components, import ordering, i18n, TypeScript conventions. Pairs with `write-react-code` |
 
-Skills from a plugin are invoked namespaced, e.g. `/cm-skills:slack-summary`.
+Invoked as `/cm-comms:<skill>`, e.g. `/cm-comms:slack-summary`.
 
 ## Updating
 
-Plugins auto-update from this repo. To add or change a skill, edit `plugins/cm-skills/skills/<name>/SKILL.md` and merge to `main`.
+Plugins auto-update from this repo. To add or change a skill, edit `plugins/<plugin>/skills/<name>/SKILL.md` (pick `cm-skills` for engineering, `cm-comms` for comms/reporting) and merge to `main`.
 
 ## Requirements
 
@@ -51,7 +66,7 @@ Plugins auto-update from this repo. To add or change a skill, edit `plugins/cm-s
    ```bash
    git checkout -b feat/my-skill
    ```
-2. Create `plugins/cm-skills/skills/<skill-name>/SKILL.md`:
+2. Pick the plugin your skill belongs in — `cm-skills` (engineering) or `cm-comms` (team communication & reporting) — then create `plugins/<plugin>/skills/<skill-name>/SKILL.md`:
    ```markdown
    ---
    name: my-skill
@@ -62,14 +77,14 @@ Plugins auto-update from this repo. To add or change a skill, edit `plugins/cm-s
 
    Step-by-step instructions for Claude...
    ```
-   That's it — skills are auto-discovered from the `skills/` directory, no registration needed. Supporting files (scripts etc.) go in the same folder; reference them as `"${CLAUDE_PLUGIN_ROOT}/skills/<skill-name>/<file>"`.
+   That's it — skills are auto-discovered from each plugin's `skills/` directory, no registration needed. Supporting files (scripts etc.) go in the same folder; reference them as `"${CLAUDE_PLUGIN_ROOT}/skills/<skill-name>/<file>"`.
 3. Test it locally before opening the PR:
    ```bash
    claude plugin marketplace add ~/code/chartmetric/claude-plugins   # local path works
-   claude plugin install cm-skills@chartmetric-tools
-   # new claude session → /cm-skills:my-skill
+   claude plugin install <plugin>@chartmetric-tools                  # cm-skills or cm-comms
+   # new claude session → /<plugin>:my-skill
    ```
-4. Bump `version` in `plugins/cm-skills/.claude-plugin/plugin.json`.
+4. Bump `version` in that plugin's `.claude-plugin/plugin.json`.
 5. Open a PR. After merge, everyone's plugin auto-updates from `main`.
 
 **Ground rules for skills:**

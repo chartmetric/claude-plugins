@@ -1,7 +1,7 @@
 {
   "name": "cm-skills",
-  "description": "Chartmetric team skills for Claude Code: Slack thread summaries, session work reports, Slack-to-Asana task filing, ClickHouse benchmarking, multi-repo PR orchestration, read-only database querying, end-to-end PR finalization (ship-pr), PR-review triage (cm-pr-review), take-home scoring (cm-takehome-review), production release notes, code explanation, and React/frontend authoring conventions (write-react-code, frontend-guidelines).",
-  "version": "0.6.0",
+  "description": "Chartmetric engineering skills for Claude Code: ClickHouse benchmarking, read-only database querying, PR-review triage (cm-pr-review), take-home scoring (cm-takehome-review), multi-repo PR orchestration, end-to-end PR finalization (ship-pr), code explanation, and React/frontend authoring conventions (write-react-code, frontend-guidelines). Team communication & reporting skills live in the sibling cm-comms plugin.",
+  "version": "0.7.0",
   "author": {
     "name": "Chartmetric Engineering"
   }

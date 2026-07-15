@@ -7,7 +7,12 @@
     {
       "name": "cm-skills",
       "source": "./plugins/cm-skills",
-      "description": "Chartmetric team skills: slack-summary, session-report, slack-to-asana, clickhouse-benchmark, multi-repo-pr, query-database, ship-pr, cm-pr-review, cm-takehome-review, release-notes, explain-code, write-react-code, frontend-guidelines"
+      "description": "Chartmetric engineering skills: clickhouse-benchmark, query-database, cm-pr-review, cm-takehome-review, multi-repo-pr, ship-pr, explain-code, write-react-code, frontend-guidelines"
+    },
+    {
+      "name": "cm-comms",
+      "source": "./plugins/cm-comms",
+      "description": "Chartmetric communication & reporting skills: slack-summary, session-report, slack-to-asana, release-notes"
     }
   ]
 }
