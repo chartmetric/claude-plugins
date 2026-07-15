@@ -22,6 +22,12 @@ Or inside a Claude Code session: `/plugin` → browse `chartmetric-tools` → in
 | `multi-repo-pr` | One piece of work spanning several repos: one branch + one PR per repo, cross-linked |
 | `query-database` | READ-ONLY queries against RDS/ClickHouse/Elasticsearch/Snowflake via devin-secrets.env (local sessions only) |
 | `ship-pr` | Finalize session PRs end-to-end: description, assignee = creator, Slack + Asana links (auto-created if missing), reviewer suggestion, PR Preview labels, poll until the preview deploys |
+| `cm-pr-review` | Triage the PRs awaiting your review: discover direct review requests in `chartmetric`, draft a review per PR using each repo's own conventions, then post/approve/skip per PR on confirmation |
+| `cm-takehome-review` | Score candidate take-home PRs against a rubric (runs each branch in a throwaway worktree to verify tests) and write local-only markdown scorecards + a comparison doc — never posts to GitHub |
+| `release-notes` | Generate (and optionally post) the "Chartmetric Production Release" `#product-updates` message from a deploy message / PR / release tag, resolving Asana tasks and combining FE+BE release waves |
+| `explain-code` | Explain code with an ASCII diagram, a step-by-step walkthrough, a gotcha, and a suggested improvement |
+| `write-react-code` | Implement React + TypeScript features following project conventions (ESLint, strict types, context/hook thresholds, file organization, design-system usage) |
+| `frontend-guidelines` | Chartmetric Web App frontend conventions & rules: Tailwind vs SCSS modules, design-system components, import ordering, i18n, TypeScript conventions. Pairs with `write-react-code` |
 
 Skills from a plugin are invoked namespaced, e.g. `/cm-skills:slack-summary`.
 
@@ -31,8 +37,9 @@ Plugins auto-update from this repo. To add or change a skill, edit `plugins/cm-s
 
 ## Requirements
 
-- `slack-summary`, `session-report`, `slack-to-asana`, `ship-pr` need the claude.ai Slack (and Asana) connectors: claude.ai → Settings → Connectors (`ship-pr` degrades gracefully — GitHub-only steps still run without them)
+- `slack-summary`, `session-report`, `slack-to-asana`, `ship-pr`, `release-notes` need the claude.ai Slack (and Asana) connectors: claude.ai → Settings → Connectors (`ship-pr` degrades gracefully — GitHub-only steps still run without them)
 - `clickhouse-benchmark` needs `CLICKHOUSE_HOST` / `CLICKHOUSE_PORT` / `clickhouse_user` / `clickhouse_password` in your shell env
+- `cm-pr-review`, `cm-takehome-review`, `release-notes`, `multi-repo-pr`, `ship-pr` need the `gh` CLI authenticated (`gh auth status`); `cm-takehome-review` also needs the take-home repos cloned under `~/code/chartmetric/`
 
 ## Contributing
 
