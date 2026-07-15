@@ -19,6 +19,15 @@ claude plugin install cm-comms@chartmetric-tools     # comms & reporting
 
 Or inside a Claude Code session: `/plugin` → browse `chartmetric-tools` → install `cm-skills` and/or `cm-comms`.
 
+```
+# 1. Refresh the marketplace clone (pulls the newest main from chartmetric/claude-plugins)
+claude plugin marketplace update chartmetric-tools
+
+# 2. Update each plugin to whatever version main now declares
+claude plugin update cm-skills@chartmetric-tools
+claude plugin update cm-comms@chartmetric-tools
+```
+
 ## What's in `cm-skills` (engineering)
 
 | Skill | What it does |
@@ -88,6 +97,18 @@ Plugins auto-update from this repo. To add or change a skill, edit `plugins/<plu
    ```
 4. Bump `version` in that plugin's `.claude-plugin/plugin.json`.
 5. Open a PR. After merge, everyone's plugin auto-updates from `main`.
+
+## Get the latest versions
+
+```
+# 1. Refresh the marketplace clone (pulls the newest main from chartmetric/claude-plugins)
+claude plugin marketplace update chartmetric-tools
+
+# 2. Update each plugin to whatever version main now declares
+claude plugin update cm-skills@chartmetric-tools
+claude plugin update cm-comms@chartmetric-tools
+```
+
 
 **Ground rules for skills:**
 
