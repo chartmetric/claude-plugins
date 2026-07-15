@@ -7,7 +7,7 @@
     {
       "name": "cm-skills",
       "source": "./plugins/cm-skills",
-      "description": "Chartmetric team skills: slack-summary, session-report, slack-to-asana, cm-conflict, clickhouse-benchmark"
+      "description": "Chartmetric team skills: slack-summary, session-report, slack-to-asana, clickhouse-benchmark"
     }
   ]
 }
