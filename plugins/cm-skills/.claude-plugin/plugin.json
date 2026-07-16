@@ -1,7 +1,7 @@
 {
   "name": "cm-skills",
-  "description": "Chartmetric engineering skills for Claude Code: ClickHouse benchmarking, read-only database querying, PR-review triage (cm-pr-review), take-home scoring (cm-takehome-review), multi-repo PR orchestration, end-to-end PR finalization (ship-pr), adding API endpoints to the Flow AI / Melodi RAG sitemap knowledge base (rag-add-endpoint), code explanation, and React/frontend authoring conventions (write-react-code, frontend-guidelines). Team communication & reporting skills live in the sibling cm-comms plugin.",
-  "version": "0.8.0",
+  "description": "Chartmetric engineering skills for Claude Code: ClickHouse benchmarking, read-only database querying, data-science notebook scaffolding (ds-notebook), PR-review triage (cm-pr-review), take-home scoring (cm-takehome-review), multi-repo PR orchestration, end-to-end PR finalization (ship-pr), adding API endpoints to the Flow AI / Melodi RAG sitemap knowledge base (rag-add-endpoint), code explanation, and React/frontend authoring conventions (write-react-code, frontend-guidelines). Team communication & reporting skills live in the sibling cm-comms plugin.",
+  "version": "0.9.0",
   "author": {
     "name": "Chartmetric Engineering"
   }
