@@ -7,7 +7,7 @@
     {
       "name": "cm-skills",
       "source": "./plugins/cm-skills",
-      "description": "Chartmetric engineering skills: clickhouse-benchmark, query-database, cm-pr-review, cm-takehome-review, multi-repo-pr, ship-pr, rag-add-endpoint, explain-code, write-react-code, frontend-guidelines"
+      "description": "Chartmetric engineering skills: clickhouse-benchmark, query-database, ds-notebook, cm-pr-review, cm-takehome-review, multi-repo-pr, ship-pr, rag-add-endpoint, explain-code, write-react-code, frontend-guidelines"
     },
     {
       "name": "cm-comms",
