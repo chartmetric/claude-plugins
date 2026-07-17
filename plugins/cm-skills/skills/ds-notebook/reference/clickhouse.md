@@ -90,8 +90,17 @@ When a join OOMs, the cause is almost always **hashing the huge side**. Fixes:
 
 - **Cumulative running-total tables** (e.g. `youtube_stat`): per-entity current
   value is `argMax(metric, timestp)`, **never** `SUM`.
-- **ReplacingMergeTree / SharedReplacingMergeTree**: use `FINAL` to collapse
-  stale/ghost rows, or aggregate defensively (`any()` / `argMax`).
+- **ReplacingMergeTree / SharedReplacingMergeTree**: rows with the same
+  `ORDER BY` key are deduped **asynchronously at merge time**, so a plain
+  `SELECT` can still return duplicates until a merge runs. To read the deduped
+  view, use one of:
+  - `SELECT ... FROM t FINAL` — collapses on read (simplest; some overhead).
+  - `argMax(col, version) ... GROUP BY key` — pick the newest row per key
+    explicitly (works with any recency column); also the pattern for reading a
+    time-series stat table as "latest per entity".
+  - `OPTIMIZE TABLE t FINAL` — force the merge now (heavy; one-off cleanup only).
+  Writing your OWN scored table? `ReplacingMergeTree(version)` makes re-runs
+  idempotent (re-inserting a key overwrites) — see `writeback.md`.
 - **`argMaxIf` returns 0 (not NULL)** when no rows match the condition — guard
   with an explicit `> 0` check, especially where 0 is also a no-data sentinel.
 - **Weight time series on the observation date**, not an ETL `last_updated`

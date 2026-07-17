@@ -61,8 +61,13 @@ this workflow has hit.
 8. **Sanity-check and explain (`§ sanity`).** Distributions, coverage, expected
    correlations, and a "leak localization" pass for scores that should be
    size-neutral. See `reference/validation.md`.
-9. **Writes are disabled by default.** The write-back cell ships fully
-   commented-out with its DDL + INSERT, so a reviewer must consciously enable it.
+9. **Writes are disabled by default, type-coerced, and idempotent.** The
+   write-back cell ships fully commented-out with its DDL + INSERT, so a reviewer
+   must consciously enable it. Before it will work: coerce integer columns
+   (`fillna(0).astype("int64")`) and send `None` (not `NaN`) for `Nullable`
+   columns — `clickhouse_driver` does no float→int coercion and treats `NaN` as a
+   value, not `NULL`. Make re-runs non-duplicating (`ReplacingMergeTree`, or
+   delete-today-then-insert). See `reference/writeback.md`.
 10. **Outputs cleared, deterministic.** Commit notebooks with outputs cleared;
     use stable ordering and `today()`-relative windows documented in `§1`.
 
@@ -98,6 +103,9 @@ runs. See the script's header for usage.
 - `reference/validation.md` — freshness sentinels, schema verification, as-of
   recompute validation, sanity diagnostics, whole-population guardrails.
 - `reference/caching.md` — the parquet cache-by-SQL-hash helper and invalidation.
+- `reference/writeback.md` — persisting results: `clickhouse_driver` dtype
+  coercion (float→int, `NaN`→`NULL`), and idempotent/re-runnable writes with
+  `ReplacingMergeTree`.
 
 ## Chartmetric specifics
 
