@@ -1,9 +1,37 @@
 # ClickHouse — connection, memory safety, join cookbook
 
+## Warehouses — there are TWO, on separate ClickHouse Cloud services
+
+Chartmetric ClickHouse Cloud has two **independent data warehouses**. They do
+**not** share storage, so a single SQL query cannot join across them.
+
+| warehouse | host | creds (env) | holds |
+|---|---|---|---|
+| **rw-standard** (default) | `grkyl47mbo….clickhouse.cloud` | `CH_USER` / `CH_PASSWORD` | `chartmetric_analytics_ch`, `chartmetric_raw_data`, and a mirror `chartmetric_new_vertical` |
+| **vert** | `j1ez4a7j4k….clickhouse.cloud` (override via `CH_VERT_HOST`) | `CH_VERT_USER` / `CH_VERT_PASSWORD` | `new_vertical.*` (native: `profiles`, `creator_profile_cache`, …) |
+
+**`new_vertical` exists in both places.** Prefer the `chartmetric_new_vertical`
+**mirror on rw-standard** — it lives in the same warehouse as everything else, so
+you join it normally with one connection. Reach for the `vert` warehouse only when
+you need the vert-native copy (e.g. fresher than the mirror). **Never write a
+single query that joins `vert` tables against rw-standard tables** — it is
+physically impossible (no shared storage; no account holds the `REMOTE` grant
+needed for `remoteSecure()` federation). Pull each side separately and merge in
+pandas.
+
+> ⚠️ **Do NOT use `clickhouse_connect(service="vert")`.** The installed
+> `data_utils` (through 1.14.1) **silently ignores the `service=` argument** and
+> connects to rw-standard as `CH_USER` regardless — where `new_vertical` does not
+> exist, producing the misleading error `Database new_vertical does not exist`.
+> This is a `data_utils` routing bug, not a credentials problem (verified live,
+> 2026-07). Connect to `vert` **directly** with the `vert_connect()` helper below.
+
 ## Connection & helpers (standalone, inline in §0)
 
 ```python
-from data_utils.clickhouse_access import clickhouse_connect  # returns a clickhouse_driver Client
+import os
+from data_utils.clickhouse_access import clickhouse_connect  # rw-standard only; returns a clickhouse_driver Client
+from clickhouse_driver import Client                          # for the direct vert connection
 
 # Memory-safety settings applied to EVERY query:
 #  - analyzer on (multi-CTE / nested-IN queries need it; matches the sync jobs)
@@ -19,6 +47,7 @@ CH_SETTINGS = {
     "max_threads": 8,
 }
 
+# ── rw-standard (default warehouse) ─────────────────────────────────────────
 def query_df(sql: str) -> "pd.DataFrame":
     con = clickhouse_connect()
     try:
@@ -34,9 +63,32 @@ def run_ch(sql: str) -> None:                              # DDL / no result set
         con.execute(sql, settings=CH_SETTINGS)
     finally:
         con.disconnect()
+
+# ── vert (new_vertical) — direct connect; bypasses the data_utils service= bug ─
+# Needs CH_VERT_USER / CH_VERT_PASSWORD exported in the shell that launched
+# Jupyter (the new-verticals account), then restart the kernel. Native protocol
+# on 9440 + TLS — do NOT use 8443 (that's the HTTP port).
+def vert_connect() -> Client:
+    user, pw = os.environ.get("CH_VERT_USER"), os.environ.get("CH_VERT_PASSWORD")
+    assert user and pw, "export CH_VERT_USER / CH_VERT_PASSWORD, then restart the kernel"
+    return Client(
+        host=os.environ.get("CH_VERT_HOST", "j1ez4a7j4k.us-west-2.aws.clickhouse.cloud"),
+        port=9440, user=user, password=pw, secure=True, database="new_vertical",
+        connect_timeout=15, send_receive_timeout=3300,
+    )
+
+def query_vert_df(sql: str) -> "pd.DataFrame":
+    con = vert_connect()
+    try:
+        rows, col_types = con.execute(sql, with_column_types=True, settings=CH_SETTINGS)
+    finally:
+        con.disconnect()
+    return pd.DataFrame(rows, columns=[name.split('.')[-1] for name, _ in col_types])
 ```
 
-Wrap `query_df` with the parquet cache in `caching.md` for heavy queries.
+Wrap `query_df` / `query_vert_df` with the parquet cache in `caching.md` for heavy
+queries — include the warehouse name in the cache key so vert and rw-standard
+results can never collide.
 
 **Ad-hoc probing outside the notebook** (e.g. schema/freshness checks): the
 ClickHouse HTTPS endpoint works with `curl` — `https://$clickhouse_host:$CLICKHOUSE_PORT/`
