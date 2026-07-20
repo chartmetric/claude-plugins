@@ -83,8 +83,16 @@ When a join OOMs, the cause is almost always **hashing the huge side**. Fixes:
    Reference each heavy CTE once.
 4. **Prefer `uniq()` (HLL) over `uniqExact()`** for count-distinct at scale, and
    `quantile()` over `quantileExact()` — the approximate variants keep memory flat.
-5. Keep the spill settings on; if still strained, lower `max_threads` or
-   materialize an intermediate as a scratch table.
+5. **Dedup with `GROUP BY`, not `SELECT DISTINCT`.** `DISTINCT` runs as
+   `DistinctTransform` — an **in-memory-only** hash set that does NOT spill, so a
+   large distinct set OOMs even with the external-group-by setting on.
+   `SELECT a, b FROM … GROUP BY a, b` returns the same rows but runs as an
+   aggregation that honors `max_bytes_before_external_group_by` and spills to
+   disk. Symptom: an OOM whose stack trace names `DistinctTransform` (often when
+   a window/scan was just widened). Same idea for `LIMIT BY` and set-building.
+6. Keep the spill settings on; if still strained, lower `max_threads` (fewer
+   concurrent hash tables → lower peak) or materialize an intermediate as a
+   scratch table.
 
 ## Snapshot semantics (get these wrong and every number is wrong)
 
