@@ -13,6 +13,11 @@
       "name": "cm-comms",
       "source": "./plugins/cm-comms",
       "description": "Chartmetric communication & reporting skills: slack-summary, session-report, slack-to-asana, release-notes"
+    },
+    {
+      "name": "cm-ai",
+      "source": "./plugins/cm-ai",
+      "description": "Chartmetric AI-related skills: reading-casper-sessions"
     }
   ]
 }

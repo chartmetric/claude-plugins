@@ -2,12 +2,13 @@
 
 Private plugin marketplace for Chartmetric's Claude Code skills. Access is controlled by this repo's visibility — anyone who can clone it can install from it.
 
-The marketplace ships two plugins:
+The marketplace ships three plugins:
 
 - **`cm-skills`** — engineering skills (code, PRs, databases, reviews)
 - **`cm-comms`** — team communication & reporting skills (Slack + Asana)
+- **`cm-ai`** — AI-related skills (reading Casper agent sessions)
 
-Install whichever you need — or both.
+Install whichever you need.
 
 ## Install
 
@@ -15,9 +16,10 @@ Install whichever you need — or both.
 claude plugin marketplace add chartmetric/claude-plugins
 claude plugin install cm-skills@chartmetric-tools    # engineering
 claude plugin install cm-comms@chartmetric-tools     # comms & reporting
+claude plugin install cm-ai@chartmetric-tools        # AI-related skills
 ```
 
-Or inside a Claude Code session: `/plugin` → browse `chartmetric-tools` → install `cm-skills` and/or `cm-comms`.
+Or inside a Claude Code session: `/plugin` → browse `chartmetric-tools` → install `cm-skills`, `cm-comms`, and/or `cm-ai`.
 
 ```
 # 1. Refresh the marketplace clone (pulls the newest main from chartmetric/claude-plugins)
@@ -26,6 +28,7 @@ claude plugin marketplace update chartmetric-tools
 # 2. Update each plugin to whatever version main now declares
 claude plugin update cm-skills@chartmetric-tools
 claude plugin update cm-comms@chartmetric-tools
+claude plugin update cm-ai@chartmetric-tools
 ```
 
 ## What's in `cm-skills` (engineering)
@@ -57,6 +60,14 @@ Invoked as `/cm-skills:<skill>`, e.g. `/cm-skills:cm-pr-review`.
 
 Invoked as `/cm-comms:<skill>`, e.g. `/cm-comms:slack-summary`.
 
+## What's in `cm-ai` (AI-related skills)
+
+| Skill | What it does |
+| --- | --- |
+| `reading-casper-sessions` | Read a Casper agent session — its transcript and trace — via the session read API (`lean` / `full` / `nodes` / `export` views) to inspect, analyze, or diagnose behavior |
+
+Invoked as `/cm-ai:<skill>`, e.g. `/cm-ai:reading-casper-sessions`.
+
 ## Updating
 
 Plugins auto-update from this repo. To add or change a skill, edit `plugins/<plugin>/skills/<name>/SKILL.md` (pick `cm-skills` for engineering, `cm-comms` for comms/reporting) and merge to `main`.
@@ -67,6 +78,7 @@ Plugins auto-update from this repo. To add or change a skill, edit `plugins/<plu
 - `clickhouse-benchmark` needs `CLICKHOUSE_HOST` / `CLICKHOUSE_PORT` / `clickhouse_user` / `clickhouse_password` in your shell env
 - `cm-pr-review`, `cm-takehome-review`, `release-notes`, `multi-repo-pr`, `ship-pr`, `rag-add-endpoint` need the `gh` CLI authenticated (`gh auth status`); `cm-takehome-review` also needs the take-home repos cloned under `~/code/chartmetric/`
 - `rag-add-endpoint` needs read-only DB access (local session + `devin-secrets.env`) for its feasibility checks, and chartmetric-one cloned for the `flow`-endpoint path
+- `reading-casper-sessions` needs a read-only `CASPER_SESSION_READ_TOKEN` in your shell env (mint one at https://casper.chartmetric.com/settings) and `curl`
 
 ## Contributing
 
@@ -108,6 +120,7 @@ claude plugin marketplace update chartmetric-tools
 # 2. Update each plugin to whatever version main now declares
 claude plugin update cm-skills@chartmetric-tools
 claude plugin update cm-comms@chartmetric-tools
+claude plugin update cm-ai@chartmetric-tools
 ```
 
 
