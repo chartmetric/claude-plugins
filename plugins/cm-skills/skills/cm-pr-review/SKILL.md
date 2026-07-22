@@ -1,6 +1,6 @@
 ---
 name: cm-pr-review
-description: Reviews every open PR that GitHub thinks the user should review. Discovers them via `gh search prs --review-requested=@me`, loads each PR's repo conventions (CLAUDE.md + .claude/skills) read-only, writes a markdown review per PR, then asks per-PR whether to post via `gh pr review --comment`. Triggers - /cm-pr-review, "review my PRs", "what do I need to review".
+description: Reviews every open PR that GitHub thinks the user should review. Discovers them via `gh search prs --review-requested=@me`, loads each PR's repo conventions (CLAUDE.md + .claude/skills) read-only, writes a markdown review per PR, then asks per-PR whether to post. Reviews are always submitted as the `chartmetric-claude` GitHub App via the Maestro MCP `submit_pr_review` tool — never the reviewer's personal account. Triggers - /cm-pr-review, "review my PRs", "what do I need to review".
 author: hyosik@chartmetric.com
 ---
 
@@ -9,6 +9,14 @@ author: hyosik@chartmetric.com
 Goal: turn the morning "what do I need to review" question into a single command. Discover every PR where the user is a requested reviewer (directly or via team delegation), generate one review draft per PR using each repo's own conventions, then let the user post or skip each draft.
 
 The skill is one-shot. No background scheduling, no Slack, no posting until the user confirms per PR.
+
+## Posting identity — always the `chartmetric-claude` App
+
+Every review this skill posts — **approve, request-changes, or comment** — is submitted as the **`chartmetric-claude` GitHub App** (`chartmetric-claude[bot]`), the same way [chartmetric-one#231](https://github.com/chartmetric/chartmetric-one/pull/231) got its bot review-and-approval. It lands under the shared bot's name for **everyone**, never the individual reviewer's GitHub account.
+
+- **Reads** (discovery, `gh pr view`, `gh pr diff`, loading repo conventions) run as the user via `gh` — read-only, fine.
+- **Writes** (posting the review) go **exclusively** through the Maestro MCP `submit_pr_review` tool, which authenticates as the App via an installation token.
+- **Never** post a review with `gh pr review` — that attributes it to whoever is logged into `gh` locally (e.g. the review on chartmetric-api#7035 posted as a personal account instead of the bot). If Maestro can't post, the skill refuses and skips rather than falling back to `gh`. See [Step 4](#step-4--post-approve-or-skip-after-all-drafts-are-shown).
 
 ## Step 1 — Discover PRs
 
@@ -148,7 +156,7 @@ After composing the review, judge whether the PR is in shape to approve, needs c
 - **Request changes** — at least one blocking issue: bug, regression risk, missing test for a behavior change, violation of repo conventions, breaking API change without justification. The PR must change before merging.
 - **Comment** — neither. Open question, want author's input, want to flag something without blocking. Default when uncertain — never auto-escalate to request-changes when you could simply ask.
 
-Record the verdict as `recommended: approve | request_changes | comment`. Keep it in the in-memory state for Step 4 — **do not** add a verdict line to the review body that ships to GitHub. The user's explicit key press in Step 4 conveys the actual verdict via the `--approve` / `--request-changes` / `--comment` flag; including a "Recommended: X" header in the published comment would muddy that.
+Record the verdict as `recommended: approve | request_changes | comment`. Keep it in the in-memory state for Step 4 — **do not** add a verdict line to the review body that ships to GitHub. The user's explicit key press in Step 4 conveys the actual verdict via the `submit_pr_review` `event` (`APPROVE` / `REQUEST_CHANGES` / `COMMENT`); including a "Recommended: X" header in the published comment would muddy that.
 
 The recommendation surfaces only:
 
@@ -186,7 +194,21 @@ Recommended: <approve | request changes | comment> — <one-line reason from 3d>
 
 Default action when the user presses ENTER without typing anything: take the **recommended verdict**. Print it explicitly before posting so the user can Ctrl-C if they misread.
 
-Before any `gh pr review` call, prepend an attribution block to the body so the PR author and other reviewers can tell the comment was AI-assisted and that the engineer drove it:
+### Preflight — Maestro must be able to post as the App (once per run, before the first post)
+
+Confirm the Maestro MCP `submit_pr_review` tool is available in this session (the Maestro MCP server is connected and you are signed in as a @chartmetric.com employee). If it is **not** available, do not post anything. Print:
+
+```
+⚠️  Maestro MCP isn't connected, so reviews can't be posted as the chartmetric-claude App.
+    Connect the Maestro MCP server (employee Google sign-in) and re-run.
+    Refusing to post as your personal GitHub account.
+```
+
+Then treat every PR as skipped and go to the output contract. **Never** fall back to `gh pr review` — posting as an individual is the exact bug this skill avoids.
+
+### Attribution block
+
+Because the review lands under the bot's name, this block is what tells the author and other reviewers which human drove it. Prepend it to the body before every post:
 
 ```
 > _Drafted with the [`cm-pr-review`](https://github.com/chartmetric/claude-plugins/tree/main/plugins/cm-skills/skills/cm-pr-review) Claude Code skill. @<GH_LOGIN> initiated the review and worked with Claude on the analysis before posting._
@@ -198,15 +220,25 @@ Before any `gh pr review` call, prepend an attribution block to the body so the 
 
 `<GH_LOGIN>` is the value resolved at the start of Step 1.
 
-Map keys to `gh pr review` calls (using the attribution-prefixed body):
+### Post via the Maestro App tool
 
-- `A` → `gh pr review <num> --repo <owner>/<repo> --approve --body "<prefixed_body>"`
-- `R` → `gh pr review <num> --repo <owner>/<repo> --request-changes --body "<prefixed_body>"`
-- `C` → `gh pr review <num> --repo <owner>/<repo> --comment --body "<prefixed_body>"`
+Map keys to `submit_pr_review` calls (using the attribution-prefixed body as `body`). Split `<owner>/<repo>` into the `owner` and `repo` arguments and pass the PR `number`:
+
+- `A` → `submit_pr_review(owner=<owner>, repo=<repo>, number=<num>, event="APPROVE", body=<prefixed_body>)`
+- `R` → `submit_pr_review(owner=<owner>, repo=<repo>, number=<num>, event="REQUEST_CHANGES", body=<prefixed_body>)`
+- `C` → `submit_pr_review(owner=<owner>, repo=<repo>, number=<num>, event="COMMENT", body=<prefixed_body>)`
 - `S` → log nothing, move on
 - `Q` → stop the loop. Remaining drafts are dropped (not saved anywhere in v1)
 
-Print the resulting review URL on success.
+`APPROVE` requires a non-empty `body` (the tool rejects a silent rubber stamp); the attribution block plus the review summary always satisfies this. A single `APPROVE` review carries the full write-up **and** the approval in one submission — exactly how chartmetric-one#231's bot review landed.
+
+Print the `html_url` the tool returns on success.
+
+**If the tool errors, surface the message and skip that PR — never fall back to `gh pr review`:**
+
+- `Repo '<slug>' is not in the GitHub allowlist` → the `chartmetric-claude` App isn't cleared for this repo in Maestro yet. Report it so the repo can be added to `MAESTRO_GITHUB_ALLOWED_REPOS`; skip the PR.
+- `... is not permitted to submit GitHub reviews` → the caller's email isn't in `MAESTRO_GITHUB_APPROVERS`; report and skip.
+- Any other GitHub error → print it verbatim and skip.
 
 **Guardrails — never auto-escalate.** If the user just presses ENTER and the recommendation is `request changes`, still print the verdict line explicitly and pause for a beat so the user sees what's about to happen. Do not buffer multiple ENTERs into auto-confirmations of consecutive request-changes verdicts.
 
@@ -236,7 +268,8 @@ End the run with a one-line summary:
 - Don't run `git` commands that mutate state.
 - Don't review from the diff alone if repo context fetch errored (skip instead).
 - Don't paginate output — render everything and let the terminal scroll.
-- Don't auto-escalate to `--request-changes`. Always require explicit confirmation, even when ENTER takes the default.
+- Don't auto-escalate to `REQUEST_CHANGES`. Always require explicit confirmation, even when ENTER takes the default.
+- **Never post a review with `gh pr review` or any personal-account path.** Every posted review goes through the Maestro `submit_pr_review` tool so it lands as the `chartmetric-claude` App. If Maestro can't post, skip — do not post as yourself.
 
 ## Examples
 
