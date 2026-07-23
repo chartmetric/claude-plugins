@@ -23,7 +23,7 @@ console session. Pick a path by how much you need; reach for one of two workflow
 # Use the token already in your shell env; source ~/code/secrets.env only as a fallback.
 [ -n "$CASPER_SESSION_READ_TOKEN" ] || { [ -f ~/code/secrets.env ] && { set -a; . ~/code/secrets.env; set +a; }; }
 [ -n "$CASPER_SESSION_READ_TOKEN" ] || echo "No token — mint one at https://casper.chartmetric.com/settings"
-BASE=https://casper.chartmetric.com   # or $CASPER_CONSOLE_URL
+BASE='https://casper.chartmetric.com'   # or $CASPER_CONSOLE_URL
 AUTH="Authorization: Bearer $CASPER_SESSION_READ_TOKEN"
 SID='<channel>:<thread_ts>'
 curl -s -H "$AUTH" "$BASE/api/sessions/${SID/:/%3A}/lean"            # skim
