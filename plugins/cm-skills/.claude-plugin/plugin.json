@@ -1,7 +1,7 @@
 {
   "name": "cm-skills",
-  "description": "Chartmetric engineering skills for Claude Code: ClickHouse benchmarking, read-only database querying, data-science notebook scaffolding (ds-notebook), PR-review triage (cm-pr-review), take-home scoring (cm-takehome-review), multi-repo PR orchestration, end-to-end PR finalization (ship-pr), adding API endpoints to the Flow AI / Melodi RAG sitemap knowledge base (rag-add-endpoint), code explanation, and React/frontend authoring conventions (write-react-code, frontend-guidelines). Ships a PreToolUse hook that routes PR reviews/approvals/merges through the Maestro chartmetric-claude GitHub App. Team communication & reporting skills live in the sibling cm-comms plugin.",
-  "version": "0.10.0",
+  "description": "Chartmetric engineering skills for Claude Code: single-task harness discipline (cm-task: interview to a brief, red verifier before code, TDD, fresh-context review subagent, micro-retro), ClickHouse benchmarking, read-only database querying, data-science notebook scaffolding (ds-notebook), PR-review triage (cm-pr-review), take-home scoring (cm-takehome-review), multi-repo PR orchestration, end-to-end PR finalization (ship-pr), adding API endpoints to the Flow AI / Melodi RAG sitemap knowledge base (rag-add-endpoint), code explanation, and React/frontend authoring conventions (write-react-code, frontend-guidelines). Ships a PreToolUse hook that routes PR reviews/approvals/merges through the Maestro chartmetric-claude GitHub App. Team communication & reporting skills live in the sibling cm-comms plugin.",
+  "version": "0.11.0",
   "author": {
     "name": "Chartmetric Engineering"
   }
