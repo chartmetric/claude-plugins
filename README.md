@@ -43,6 +43,7 @@ claude plugin update cm-ai@chartmetric-tools
 | `cm-takehome-review` | Score candidate take-home PRs against a rubric (runs each branch in a throwaway worktree to verify tests) and write local-only markdown scorecards + a comparison doc — never posts to GitHub |
 | `multi-repo-pr` | One piece of work spanning several repos: one branch + one PR per repo, cross-linked |
 | `ship-pr` | Finalize session PRs end-to-end: description, assignee = creator, Slack + Asana links (auto-created if missing), reviewer suggestion, PR Preview labels, poll until the preview deploys |
+| `gh-stack` | Manage stacked branches & PRs with the `gh stack` CLI extension: build, navigate, rebase, sync, and merge a chain of dependent PRs, run non-interactively so it never hangs on a prompt |
 | `rag-add-endpoint` | Add an API endpoint to the Flow AI / Melodi RAG "sitemap" knowledge base: gate on whether a live endpoint exists (else "build the API first"), then edit chartmetric-one's `api-registry.ts` (`flow`) or emit reviewable Postgres SQL (`main`) + a PR, with the activation timeline |
 | `explain-code` | Explain code with an ASCII diagram, a step-by-step walkthrough, a gotcha, and a suggested improvement |
 | `write-react-code` | Implement React + TypeScript features following project conventions (ESLint, strict types, context/hook thresholds, file organization, design-system usage) |
