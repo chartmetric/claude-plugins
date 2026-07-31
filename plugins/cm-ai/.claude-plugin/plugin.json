@@ -1,7 +1,7 @@
 {
   "name": "cm-ai",
-  "description": "Chartmetric AI-related skills. Currently: reading-casper-sessions — read a Casper agent session's transcript and trace via the session read API for inspection and diagnosis.",
-  "version": "0.1.0",
+  "description": "Chartmetric AI-related skills. Currently: reading-casper-sessions — read a Casper agent session's transcript and trace via the session read API for inspection and diagnosis; replit-env — reach and sync a repo's Replit workspace (cm-workspace or the kevin repl) over SSH.",
+  "version": "0.2.0",
   "author": {
     "name": "Chartmetric Engineering"
   }
