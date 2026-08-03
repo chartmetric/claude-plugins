@@ -66,7 +66,6 @@ Invoked as `/cm-comms:<skill>`, e.g. `/cm-comms:slack-summary`.
 
 | Skill | What it does |
 | --- | --- |
-| `cm-task` | Run a single task (one branch, one PR) with harness discipline: interview → confirmed brief, red verifier before code, TDD, fresh-context review subagent, micro-retro lesson into the repo's CLAUDE.md. Accepts an Asana or Slack URL |
 | `reading-casper-sessions` | Read a Casper agent session — its transcript and trace — via the session read API (`lean` / `full` / `nodes` / `export` views) to inspect, analyze, or diagnose behavior |
 | `replit-env` | Reach a repo's Replit workspace (cm-workspace or the kevin repl) over SSH to run commands there, sync its git checkout with GitHub, or unstick a Replit↔GitHub sync — with the `ssh -n` gotcha, host-rotation recovery, per-repl auth (bundle transport vs askpass shim), the kevin auto-commit watcher, and cm-workspace's prod side effects |
 
@@ -74,7 +73,7 @@ Invoked as `/cm-ai:<skill>`, e.g. `/cm-ai:reading-casper-sessions`.
 
 ## Updating
 
-Plugins auto-update from this repo. To add or change a skill, edit `plugins/<plugin>/skills/<name>/SKILL.md` (pick `cm-skills` for engineering, `cm-comms` for comms/reporting) and merge to `main`.
+Plugins auto-update from this repo. To add or change a skill, edit `plugins/<plugin>/skills/<name>/SKILL.md` (pick `cm-skills` for engineering, `cm-comms` for comms/reporting, `cm-ai` for AI-related skills) and merge to `main`.
 
 ## Requirements
 
