@@ -68,7 +68,7 @@ Outbound — repl-only commits to your machine, so you can read them before they
 ```bash
 ssh -n <alias> 'cd /home/runner/workspace; git bundle create /tmp/out.bundle origin/<branch>..HEAD'
 scp <alias>:/tmp/out.bundle /tmp/
-git fetch /tmp/out.bundle HEAD:refs/heads/repl-sync   # a <ref>..HEAD range carries the ref as HEAD
+git fetch /tmp/out.bundle +HEAD:refs/heads/repl-sync  # a <ref>..HEAD range carries the ref as HEAD; + so a leftover repl-sync re-runs
 ```
 
 Merge `repl-sync` in your own checkout, push the result, then fast-forward the repl onto it.
