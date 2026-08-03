@@ -1,6 +1,7 @@
 ---
 name: replit-env
 description: Use when working in a Chartmetric repo whose app runs in a Replit workspace (cm-workspace or the kevin repl) and a task needs the repl's own environment — its data-store credentials, interpreter, or installed deps — or needs to run commands there over SSH, sync its git checkout with GitHub, unstick a Replit↔GitHub sync, or reason about production (which SSH cannot reach).
+author: tyler@chartmetric.com
 ---
 
 # Replit workspace environments
