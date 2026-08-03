@@ -19,6 +19,16 @@ to sync either one with GitHub.
 
 ## Every repl
 
+### No alias yet? First connection
+
+Everything else here assumes the repl's `Host <alias>` block already exists in `~/.ssh/config`; on a
+fresh machine it won't. Open the repl's Tools → SSH pane — it shows the `HostName`, `User`, and
+`Port`. Add a matching block to `~/.ssh/config`, naming its `Host` line for the alias this skill uses
+(`replit-workspace` or `replit-kevin`) and pointing `IdentityFile` at `~/.ssh/replit` — generate that
+key first if it's missing (`ssh-keygen -t ed25519 -f ~/.ssh/replit`). For cm-workspace, also register
+`~/.ssh/replit.pub` under the Replit account's SSH keys (the same registry the host-rotation note
+below refers to).
+
 ### Always `ssh -n`
 
 `ssh` reads stdin, which in a non-interactive harness is a pipe nobody closes, so the call hangs —
