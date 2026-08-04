@@ -1,0 +1,28 @@
+{
+  "_comment": "Team roster for the DE monthly all-hands update. GitHub handles are NOT guessable from names — several are Korean-keyboard romanizations (gkdms99 = 하은/Haeun, febgkdud contains 하영/Hayoung). Slack avatar URLs go stale when people change their photo; re-query Slack rather than trusting the cached url.",
+  "team": [
+    { "name": "Charlie Rowe",  "gh": "crowe32996",        "slack": "U0A5TP5Q8HJ", "photo": "charlie-rowe.png",   "focus": "NV platform, sports, data shares, team" },
+    { "name": "Donghwan",      "gh": "dhkim77000",        "slack": "U06C4J3ELQN", "photo": "donghwan.jpg",       "focus": "audience & affinity, vendor migration, NV architecture" },
+    { "name": "Jungyeon Seo",  "gh": "cyndii20",          "slack": "U09781U9D5X", "photo": "jungyeon-seo.png",   "focus": "social identity, backfills, IG completeness" },
+    { "name": "Rafael Ortiz",  "gh": "rafaelortizdotdev", "slack": "U0B65B3MQ6S", "photo": "rafael-ortiz.jpg",   "focus": "monetization, observability, cost, incidents" },
+    { "name": "Hayoung Park",  "gh": "febgkdud",          "slack": "U0BHPRJEM4G", "photo": "hayoung-park.jpg",   "focus": "reliability, schema drift, migration analysis" },
+    { "name": "Haeun Seo",     "gh": "gkdms99",           "slack": "U03NBPB02MB", "photo": "haeun-seo.png",      "focus": "JioSaavn, catalog migration, shared infra" },
+    { "name": "Kashin Shah",   "gh": "kashinshah",        "slack": "U05A9PN2L3U", "photo": "kashin-shah.jpg",    "focus": "tiering, intake design, NV data model" },
+    { "name": "Heewon Jeong",  "gh": "heewoneha",         "slack": "U06Q4LL8FMG", "photo": "heewon-jeong.jpg",   "focus": "label attribution, Kakao share, catalog metadata" }
+  ],
+  "adjacent": [
+    { "name": "Jiwon Joung",   "gh": "wjdwl002",          "slack": "U050QNLMML1", "photo": null,                 "focus": "Flow/API, app surfaces" },
+    { "name": "Sowon Jung",    "gh": "sowish23",          "slack": "U05PFJYDZ2T", "photo": null,                 "focus": "brands, web app" },
+    { "name": "Jordan Levy",   "gh": "JordanLevy19",      "slack": "U0BCYFAV6AV", "photo": "jordan-levy.png",    "focus": "live events ingestion" },
+    { "name": "Tyler",         "gh": "tylerho5",          "slack": "U092R3A4LAU", "photo": "tyler.png",          "focus": "Casper, agent tooling, Flow smart filter" },
+    { "name": "Dhruv Limbani", "gh": "Dhruv-Limbani",     "slack": "U08RN0699UG", "photo": "dhruv-limbani.png",  "focus": "Casper, Flow Slack app; also ships via devin/claude bots, so check those authors too" }
+  ],
+  "bot_authors": ["Casper-AI-CM", "claude[bot]", "devin-ai-integration[bot]"],
+  "photo_dir": "~/Desktop/de-allhands-photos",
+  "key_channels": [
+    "#data-updates", "#proj-data-shares", "#proj-flow", "#proj-new-verticals-new-app",
+    "#proj-influencers-brands-games", "#customer-issues-and-requests", "#team-data-engineering",
+    "#proj-monetization-data", "#casper-testing", "#pipeline-watchdog", "#data_share_kakao",
+    "#data_alert", "#pull-requests"
+  ]
+}

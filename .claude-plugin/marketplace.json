@@ -12,7 +12,7 @@
     {
       "name": "cm-comms",
       "source": "./plugins/cm-comms",
-      "description": "Chartmetric communication & reporting skills: slack-summary, session-report, slack-to-asana, release-notes"
+      "description": "Chartmetric communication & reporting skills: slack-summary, session-report, slack-to-asana, release-notes, de-monthly-update"
     },
     {
       "name": "cm-ai",
