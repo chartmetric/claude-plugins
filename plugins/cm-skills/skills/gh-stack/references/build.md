@@ -8,7 +8,7 @@ Flags and behavior for the commands that create a stack, publish it to GitHub, a
 gh stack init [-b|--base <branch>] <branches...>
 ```
 
-Creates a stack and checks out the last branch listed. Existing branches are adopted; missing ones are created from the trunk. Enables `git rerere` — if it isn't already set (see Prerequisites in `SKILL.md`), the first run in a repo may prompt. Requires at least one positional branch.
+Creates a stack and checks out the last branch listed. Existing local branches are adopted; missing ones are created from the trunk. Enables `git rerere` — if it isn't already set (see Prerequisites in `SKILL.md`), the first run in a repo may prompt. Requires at least one positional branch.
 
 | Flag | Description |
 |------|-------------|
@@ -19,6 +19,24 @@ gh stack init auth                        # one new branch
 gh stack init branch-a branch-b branch-c  # several
 gh stack init --base develop branch-a     # custom trunk
 ```
+
+**Adopting a remote-only branch clobbers it.** "Existing branches are adopted" means existing *local* branches. Name a branch that lives only on the remote (no local branch of that name) and `gh stack` creates it fresh from your current checkout (often local trunk) instead of fetching `origin/<name>`; the next `submit`/`push`/`sync` then force-pushes that wrong content over the real remote branch, collapsing its PR diff (GitHub reports `No commits between <trunk> and <name>`) and possibly auto-closing the PR.
+
+**To group PRs that already exist, prefer `gh stack link` with PR numbers — not `init` + `submit`.** Given PR numbers, `link` works entirely through the GitHub API: it links the existing PRs and corrects their bases without pushing or creating any branch, so it cannot clobber anything (see `gh stack link` below).
+
+```bash
+gh stack link --base <trunk> <pr> <pr> <pr>   # bottom → top
+```
+
+Only when you must adopt an existing remote *branch* through `init`/`add`, fetch and verify its local tracking branch yourself first:
+
+```bash
+git fetch origin
+git branch <name> origin/<name>                    # or: git switch <name>
+git rev-parse <name>   # must equal  git rev-parse origin/<name>
+```
+
+then `gh stack init … <name>` / `gh stack add <name>`. Recovery if already clobbered: the old content is usually still reachable as the parent of the layer stacked on top of it — `git branch -f <name> <good-sha>`, `git push --force-with-lease origin <name>`, `gh pr reopen <pr-number>`.
 
 ## `gh stack add` — add a branch on top
 
@@ -35,6 +53,8 @@ Creates a new branch on top of the stack and checks it out. Must run from the to
 | `-u, --update` | Stage tracked files only (needs `-m`) |
 
 `-A` and `-u` are mutually exclusive. With `-m` on a branch that has no commits yet (e.g. right after `init`), the commit lands on the current branch instead of creating a new one. With `-m` and no branch name, the name is auto-generated from the message (`MM-DD-slug`).
+
+Naming a branch that exists only on the remote adopts it through the same broken path as `init` — see the clobber warning above before doing so.
 
 ```bash
 gh stack add api-routes                       # then plain git add / commit
@@ -72,6 +92,8 @@ gh stack link [--base <branch>] [--open] [--remote <name>] <stack-number | branc
 ```
 
 Creates or updates a GitHub Stack purely through the API — no local tracking state. Use it when branches are managed by another tool (jj, Sapling, git-town). Arguments are given bottom-to-top; each is a PR number (tried first) or a branch name. Branch args are pushed (non-force, atomic); branches without an open PR get one with the correct base chaining, and existing PRs with a wrong base are corrected. When the first argument is an existing stack number, the rest are appended to its top (args already in the stack are skipped; args in a different stack are rejected). Linking is additive — existing PRs are never removed.
+
+Passing PR **numbers** (not branch names) keeps the whole operation API-side — no push happens — which makes `link` the safe way to group PRs that already exist: it can't clobber a branch the way `init` + `submit` can (see the clobber warning under `gh stack init`). It's also how to re-add a PR that dropped out of a stack while it was briefly closed.
 
 | Flag | Description |
 |------|-------------|
