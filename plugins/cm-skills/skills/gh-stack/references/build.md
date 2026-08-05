@@ -2,6 +2,13 @@
 
 Flags and behavior for the commands that create a stack, publish it to GitHub, and tear it down to rebuild. Non-interactive requirements and exit codes are in `SKILL.md`; this file assumes them.
 
+## How a name resolves
+
+The name you pass is resolved differently per command, and that difference is the footgun below:
+
+- `init` / `add` — resolved against your **local** branches only. A local branch of that name is adopted; if none exists, a new one is created from your current HEAD (often trunk). The remote is never consulted, so a name whose only home is a remote branch (with an open PR) becomes a brand-new local branch.
+- `link` — each argument is tried as a **PR number** first, then as a branch name. PR-number args are pure API (no push); branch-name args are pushed (non-force, atomic).
+
 ## `gh stack init` — create a stack
 
 ```
@@ -20,15 +27,23 @@ gh stack init branch-a branch-b branch-c  # several
 gh stack init --base develop branch-a     # custom trunk
 ```
 
-**Adopting a remote-only branch clobbers it.** "Existing branches are adopted" means existing *local* branches. Name a branch that lives only on the remote (no local branch of that name) and `gh stack` creates it fresh from your current checkout (often local trunk) instead of fetching `origin/<name>`; the next `submit`/`push`/`sync` then force-pushes that wrong content over the real remote branch, collapsing its PR diff (GitHub reports `No commits between <trunk> and <name>`) and possibly auto-closing the PR.
-
-**To group PRs that already exist, prefer `gh stack link` with PR numbers — not `init` + `submit`.** Given PR numbers, `link` works entirely through the GitHub API: it links the existing PRs and corrects their bases without pushing or creating any branch, so it cannot clobber anything (see `gh stack link` below).
+**Adopting a remote-only branch clobbers it.** Because `init`/`add` resolve a name against local branches only (see [How a name resolves](#how-a-name-resolves)), a name whose only home is a remote branch with an open PR is treated as new and built from your current checkout (often local trunk), not `origin/<name>`. The next `submit`/`push`/`sync` then force-pushes that over the real remote branch, collapsing its PR diff (GitHub reports `No commits between <trunk> and <name>`) and possibly auto-closing the PR.
 
 ```bash
-gh stack link --base <trunk> <pr> <pr> <pr>   # bottom → top
+# State: PRs #42 (auth) and #57 (api) are open; you have no local auth/api
+# branches; frontend is new local work.
+
+# TRAP: init binds auth and api to NEW local branches (the remote is never
+# consulted); submit force-pushes over #42 and #57 and collapses both PRs.
+gh stack init auth api frontend
+gh stack submit --auto
+
+# SAFE: 42 and 57 resolve to the existing PRs (API-only, no push); only
+# frontend is pushed.
+gh stack link --base main 42 57 frontend
 ```
 
-Only when you must adopt an existing remote *branch* through `init`/`add`, fetch and verify its local tracking branch yourself first:
+For an existing remote *branch* you must adopt through `init`/`add`, fetch and verify its local tracking branch first:
 
 ```bash
 git fetch origin
