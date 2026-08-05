@@ -95,6 +95,8 @@ Creates or updates a GitHub Stack purely through the API — no local tracking s
 
 Passing PR **numbers** (not branch names) keeps the whole operation API-side — no push happens — which makes `link` the safe way to group PRs that already exist: it can't clobber a branch the way `init` + `submit` can (see the clobber warning under `gh stack init`). It's also how to re-add a PR that dropped out of a stack while it was briefly closed.
 
+**Mixed stack — some layers already have PRs, some are new.** Pass them in one `link` call, bottom-to-top: existing layers by PR number, new local branches by name. `link` touches the numbered PRs API-only and pushes only the new branches (non-force, atomic), opening their PRs with the correct bases. Don't reach for `init` + `submit` to fill in the missing PRs — that force-pushes every layer, re-exposing any branch you adopted from the remote to the clobber above. If the existing PRs are already grouped as a stack, give its number first and append the new branches: `gh stack link <stack-number> <new-branch> …`.
+
 | Flag | Description |
 |------|-------------|
 | `--base <branch>` | Base for the bottom of the stack (default: repo default) |
