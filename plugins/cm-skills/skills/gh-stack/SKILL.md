@@ -70,6 +70,8 @@ Full flags and behavior for each command live in topic files under `references/`
 | Create a stack | `gh stack init auth` |
 | Create a stack of multiple branches | `gh stack init auth api frontend` |
 | Adopt existing branches | `gh stack init existing-a existing-b` |
+| Group PRs that already exist (API only, can't clobber) | `gh stack link --base main 10 20 30` |
+| Group a mix of existing PRs + new branches | `gh stack link --base main 10 20 new-branch` |
 | Set custom trunk | `gh stack init --base develop branch-a` |
 | Add a branch to the stack | `gh stack add api-routes` |
 | Add branch + stage all + commit | `gh stack add -Am "message" api-routes` |
@@ -201,3 +203,4 @@ Teardown is clean only before any of the stack's PRs have landed: `unstack` leav
 2. **No custom PR title/body at submit.** Titles and bodies are auto-generated from commit messages; edit afterward with `gh pr edit`.
 3. **Remote checkout needs a stack or PR number.** `checkout <branch>` resolves locally-tracked stacks only; pull a stack from GitHub with `gh stack checkout <stack-number|pr-number>`.
 4. **`modify` is interactive-only.** `gh stack modify` (drop, fold, insert, reorder, or rename branches in place) needs an interactive terminal, so it has no place in a non-interactive workflow — restructure with `unstack` + `init` instead (see the Restructure a stack workflow above). Its one non-interactive touchpoint is recovery: an interrupted session exits 10, cleared with `gh stack modify --abort`.
+5. **Adopting a remote-only branch clobbers it.** `init`/`add` adopt existing *local* branches only; a branch that exists just on the remote is recreated from your current checkout, and the next `submit`/`push`/`sync` force-pushes that over the real remote content — collapsing the PR diff, sometimes closing the PR. To group PRs that already exist, prefer `gh stack link --base <trunk> <pr>...` (PR numbers) — pure API, no push, so it can't clobber; a mixed stack works in one call too, existing layers by PR number and new local branches by name. Only if you must adopt an existing remote branch through `init`/`add`, materialize and verify its local tracking branch first (`git fetch origin && git branch <name> origin/<name>`, confirm the SHAs match). Detail and recovery in `references/build.md`.
