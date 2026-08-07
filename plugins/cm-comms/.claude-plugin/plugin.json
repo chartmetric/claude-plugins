@@ -1,7 +1,7 @@
 {
   "name": "cm-comms",
-  "description": "Chartmetric team communication & reporting skills for Claude Code: Slack thread summaries (slack-summary), session work reports posted to Slack (session-report), Slack-to-Asana task filing (slack-to-asana), and production release notes for #product-updates (release-notes).",
-  "version": "0.1.0",
+  "description": "Chartmetric team communication & reporting skills for Claude Code: Slack thread summaries (slack-summary), session work reports posted to Slack (session-report), Slack-to-Asana task filing (slack-to-asana), production release notes for #product-updates (release-notes), and the monthly Data Engineering all-hands update (de-monthly-update).",
+  "version": "0.2.0",
   "author": {
     "name": "Chartmetric Engineering"
   }
