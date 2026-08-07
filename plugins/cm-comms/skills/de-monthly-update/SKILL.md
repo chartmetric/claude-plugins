@@ -9,6 +9,8 @@ Produces a company-facing update: **themed sections, product-outcome bullets, en
 
 `roster.json` holds GitHub handles ↔ Slack IDs ↔ photo filenames. **Read it first.** Several handles are Korean-keyboard romanizations and cannot be guessed from names (`gkdms99` = 하은/Haeun, `febgkdud` contains 하영/Hayoung).
 
+`roster.json`, `slack-sweep.md`, and `sections.md` sit alongside this file; the two scripts are invoked via `${CLAUDE_PLUGIN_ROOT}` below.
+
 ## Prerequisites
 
 - **`gh` CLI** authenticated with org read access — the PR sweep needs it.
@@ -23,7 +25,7 @@ Default is the last calendar month through today. Confirm the range if ambiguous
 ## 2. Sweep GitHub (all repos, not just the current one)
 
 ```bash
-~/.claude/skills/de-monthly-update/collect-prs.sh 2026-07-01 2026-08-04
+"${CLAUDE_PLUGIN_ROOT}/skills/de-monthly-update/collect-prs.sh" 2026-07-01 2026-08-04
 ```
 
 Read `by-person.md`. It separates **merged** from **open** — open PRs are in-flight and must never be written as shipped.
@@ -68,8 +70,8 @@ Prefer visuals showing a **product surface** over tables or code. Note that DMs 
 ## 7. Photos
 
 ```bash
-~/.claude/skills/de-monthly-update/fetch-photos.sh urls.tsv   # filename <TAB> avatar_url
-~/.claude/skills/de-monthly-update/fetch-photos.sh --resize   # 128px, keeps the page light
+"${CLAUDE_PLUGIN_ROOT}/skills/de-monthly-update/fetch-photos.sh" urls.tsv   # filename <TAB> avatar_url
+"${CLAUDE_PLUGIN_ROOT}/skills/de-monthly-update/fetch-photos.sh" --resize   # 128px, keeps the page light
 ```
 
 Get current URLs from `slack_search_users` (the "Profile Pic" field) — avatars change. Bot accounts do not appear in user search or the profile endpoint; grab those manually.
