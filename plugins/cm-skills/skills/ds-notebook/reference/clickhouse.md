@@ -1,9 +1,70 @@
 # ClickHouse — connection, memory safety, join cookbook
 
+## Which warehouse? (decide before writing a query)
+
+Chartmetric runs **separate ClickHouse Cloud warehouses**. They are distinct
+clusters with distinct credentials, and there is **no `REMOTE` grant — you cannot
+join across them in one query**. Pick one per notebook; if you need both, land an
+intermediate result and join it in pandas.
+
+| Warehouse | Databases | Host env var | Credentials |
+|---|---|---|---|
+| `rw-standard` | `chartmetric_analytics`, `chartmetric_raw_data`, `chartmetric_sm_raw_data` | `CLICKHOUSE_HOST` / `clickhouse_host` | `CH_USER`/`CH_PASSWORD`, else `clickhouse_user`/`clickhouse_password` |
+| `vert` (new verticals) | `new_vertical` — athletes, brands, creators | `CLICKHOUSE_VERT_HOST` / `clickhouse_newverticals_host` | `clickhouse_newverticals_user` / `clickhouse_newverticals_password` |
+
+`data_utils.clickhouse_access.clickhouse_connect()` **hardcodes the rw-standard
+host**, so calling it bare silently targets the music warehouse — a notebook
+pointed at `new_vertical` that way fails with "table does not exist" or, worse,
+finds a same-named table with different contents. It does accept overrides
+(`clickhouse_connect(host=..., username=..., password=...)` — note `username`,
+not `user`), but it gives you no control over the port. Prefer the registry below:
+it makes the target warehouse a named, printed, one-line change.
+
 ## Connection & helpers (standalone, inline in §0)
 
 ```python
-from data_utils.clickhouse_access import clickhouse_connect  # returns a clickhouse_driver Client
+import os
+from clickhouse_driver import Client
+
+# ── warehouse registry: the ONE place a warehouse is named ───────────────────
+# Each entry lists candidate env-var names in priority order; the resolver tries
+# each verbatim, upper- and lower-cased, because devin-secrets.env mixes
+# conventions (CH_USER vs clickhouse_newverticals_user).
+CH_WAREHOUSES = {
+    "rw-standard": {
+        "host": ("CLICKHOUSE_HOST", "clickhouse_host"),
+        "user": ("CH_USER", "clickhouse_user"),
+        "password": ("CH_PASSWORD", "clickhouse_password"),
+    },
+    "vert": {
+        "host": ("CLICKHOUSE_VERT_HOST", "clickhouse_newverticals_host"),
+        "user": ("clickhouse_newverticals_user",),
+        "password": ("clickhouse_newverticals_password",),
+    },
+}
+WAREHOUSE = "rw-standard"   # <-- the only place to change the target
+CH_NATIVE_PORT = 9440       # clickhouse_driver native TLS (HTTPS would be 8443)
+
+def _env(names):
+    for name in names:
+        for cand in (name, name.upper(), name.lower()):
+            val = os.environ.get(cand)
+            if val:
+                return val
+    raise KeyError(f"none of {names} in the environment — "
+                   "`source ~/code/chartmetric/devin-secrets.env` first")
+
+def ch_config(warehouse=None):
+    spec = CH_WAREHOUSES[warehouse or WAREHOUSE]
+    host = _env(spec["host"]).split("://")[-1].split("/")[0].split(":")[0]  # tolerate a full URL
+    return {"warehouse": warehouse or WAREHOUSE, "host": host,
+            "user": _env(spec["user"]), "password": _env(spec["password"]),
+            "port": CH_NATIVE_PORT}
+
+def ch_client(warehouse=None):
+    cfg = ch_config(warehouse)
+    return Client(host=cfg["host"], user=cfg["user"], password=cfg["password"],
+                  port=cfg["port"], secure=True, send_receive_timeout=3300)
 
 # Memory-safety settings applied to EVERY query:
 #  - analyzer on (multi-CTE / nested-IN queries need it; matches the sync jobs)
@@ -19,8 +80,8 @@ CH_SETTINGS = {
     "max_threads": 8,
 }
 
-def query_df(sql: str) -> "pd.DataFrame":
-    con = clickhouse_connect()
+def query_df(sql: str, warehouse=None) -> "pd.DataFrame":
+    con = ch_client(warehouse)
     try:
         rows, col_types = con.execute(sql, with_column_types=True, settings=CH_SETTINGS)
     finally:
@@ -28,22 +89,29 @@ def query_df(sql: str) -> "pd.DataFrame":
     cols = [name.split('.')[-1] for name, _ in col_types]  # strip analyzer table-qualifier prefixes
     return pd.DataFrame(rows, columns=cols)
 
-def run_ch(sql: str) -> None:                              # DDL / no result set
-    con = clickhouse_connect()
+def run_ch(sql: str, warehouse=None) -> None:              # DDL / no result set
+    con = ch_client(warehouse)
     try:
         con.execute(sql, settings=CH_SETTINGS)
     finally:
         con.disconnect()
+
+_cfg = ch_config()      # print what you actually connected to — a mis-pointed
+print(f"warehouse: {_cfg['warehouse']}  host: {_cfg['host']}  user: {_cfg['user']}")
+query_df("SELECT 1 AS ok")                                 # …notebook fails here, not 10 cells later
 ```
 
-Wrap `query_df` with the parquet cache in `caching.md` for heavy queries.
+Wrap `query_df` with the parquet cache in `caching.md` for heavy queries — and
+include the warehouse name in the cache key, or two warehouses will collide on
+identical SQL.
 
 **Ad-hoc probing outside the notebook** (e.g. schema/freshness checks): the
-ClickHouse HTTPS endpoint works with `curl` — `https://$clickhouse_host:$CLICKHOUSE_PORT/`
-(port is typically 8443 = TLS) with `clickhouse_user`/`clickhouse_password` from
+ClickHouse HTTPS endpoint works with `curl` — `https://<host>:$CLICKHOUSE_PORT/`
+(port is typically 8443 = TLS) with the matching warehouse's user/password from
 `devin-secrets.env`. Pass the spill settings as URL params. Note the ad-hoc user
-may have narrower grants than the notebook's `clickhouse_connect()` (e.g. no
-access to the scratch DB).
+may have narrower grants than the notebook's (e.g. no access to the scratch DB) —
+on the vert warehouse the read path is read-only, so verify a `CREATE` grant
+before designing around a scratch table.
 
 ## Server-side eligibility scratch table (the anti-OOM pattern)
 

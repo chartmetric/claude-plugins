@@ -25,7 +25,7 @@ def query_df(sql: str, cache: bool = True) -> pd.DataFrame:
         path = _cache_path(sql)
         if os.path.exists(path):
             return pd.read_parquet(path)
-    con = clickhouse_connect()
+    con = ch_client()
     try:
         rows, col_types = con.execute(sql, with_column_types=True, settings=CH_SETTINGS)
     finally:
