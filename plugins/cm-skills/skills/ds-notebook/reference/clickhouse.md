@@ -7,18 +7,29 @@ clusters with distinct credentials, and there is **no `REMOTE` grant — you can
 join across them in one query**. Pick one per notebook; if you need both, land an
 intermediate result and join it in pandas.
 
-| Warehouse | Databases | Host env var | Credentials |
+| Warehouse | Databases | Host (default) | Credentials, in priority order |
 |---|---|---|---|
-| `rw-standard` | `chartmetric_analytics`, `chartmetric_raw_data`, `chartmetric_sm_raw_data` | `CLICKHOUSE_HOST` / `clickhouse_host` | `CH_USER`/`CH_PASSWORD`, else `clickhouse_user`/`clickhouse_password` |
-| `vert` (new verticals) | `new_vertical` — athletes, brands, creators | `CLICKHOUSE_VERT_HOST` / `clickhouse_newverticals_host` | `clickhouse_newverticals_user` / `clickhouse_newverticals_password` |
+| `rw-standard` | `chartmetric_analytics`, `chartmetric_raw_data`, `chartmetric_sm_raw_data` | `grkyl47mbo.us-west-2.aws.clickhouse.cloud` | `CH_USER`/`CH_PASSWORD`, else `clickhouse_user`/`clickhouse_password` |
+| `vert` (new verticals) | `new_vertical` — athletes, brands, creators | `j1ez4a7j4k.us-west-2.aws.clickhouse.cloud` | `CH_VERT_USER`/`CH_VERT_PASSWORD`, else `clickhouse_newverticals_user`/`clickhouse_newverticals_password` |
 
-`data_utils.clickhouse_access.clickhouse_connect()` **hardcodes the rw-standard
-host**, so calling it bare silently targets the music warehouse — a notebook
-pointed at `new_vertical` that way fails with "table does not exist" or, worse,
-finds a same-named table with different contents. It does accept overrides
-(`clickhouse_connect(host=..., username=..., password=...)` — note `username`,
-not `user`), but it gives you no control over the port. Prefer the registry below:
-it makes the target warehouse a named, printed, one-line change.
+**Credential names differ by environment**, which is why the registry below takes
+a candidate list rather than one name:
+
+- inside the docker Jupyter (`make jupyter`), docker-compose forwards `CH_USER`,
+  `CH_PASSWORD`, `CH_VERT_USER`, `CH_VERT_PASSWORD` — and nothing else;
+- with `devin-secrets.env` sourced you get the `clickhouse_*` /
+  `clickhouse_newverticals_*` names instead.
+
+Host falls back to a per-warehouse default for the same reason:
+`CLICKHOUSE_VERT_HOST` is a `devin-secrets.env` name and is **not** forwarded
+into the Jupyter container.
+
+`data_utils.clickhouse_access.clickhouse_connect()` supports `service="vert"`
+since data-utils **1.19.0** — but **older versions silently ignore the argument
+and fall back to rw-standard**, where `new_vertical` does not exist. A silent
+wrong-warehouse connection is the worst failure mode here, so the registry builds
+the client explicitly and §0 asserts that the database you expect is actually
+visible. `SELECT 1` succeeds on both warehouses and cannot tell them apart.
 
 ## Connection & helpers (standalone, inline in §0)
 
@@ -27,39 +38,48 @@ import os
 from clickhouse_driver import Client
 
 # ── warehouse registry: the ONE place a warehouse is named ───────────────────
-# Each entry lists candidate env-var names in priority order; the resolver tries
-# each verbatim, upper- and lower-cased, because devin-secrets.env mixes
-# conventions (CH_USER vs clickhouse_newverticals_user).
+# Candidate env-var names per field, in priority order (tried verbatim, upper-
+# and lower-cased): the docker Jupyter forwards CH_USER / CH_VERT_USER, while a
+# sourced devin-secrets.env supplies the clickhouse_* names. Host falls back to a
+# per-warehouse default because CLICKHOUSE_VERT_HOST is not forwarded into the
+# container. `expect_db` is asserted after connecting — SELECT 1 succeeds on both
+# warehouses and cannot tell them apart.
 CH_WAREHOUSES = {
     "rw-standard": {
         "host": ("CLICKHOUSE_HOST", "clickhouse_host"),
+        "host_default": "grkyl47mbo.us-west-2.aws.clickhouse.cloud",
         "user": ("CH_USER", "clickhouse_user"),
         "password": ("CH_PASSWORD", "clickhouse_password"),
+        "expect_db": "chartmetric_analytics",
     },
     "vert": {
         "host": ("CLICKHOUSE_VERT_HOST", "clickhouse_newverticals_host"),
-        "user": ("clickhouse_newverticals_user",),
-        "password": ("clickhouse_newverticals_password",),
+        "host_default": "j1ez4a7j4k.us-west-2.aws.clickhouse.cloud",
+        "user": ("CH_VERT_USER", "clickhouse_newverticals_user"),
+        "password": ("CH_VERT_PASSWORD", "clickhouse_newverticals_password"),
+        "expect_db": "new_vertical",
     },
 }
 WAREHOUSE = "rw-standard"   # <-- the only place to change the target
 CH_NATIVE_PORT = 9440       # clickhouse_driver native TLS (HTTPS would be 8443)
 
-def _env(names):
+def _env(names, default=None):
     for name in names:
         for cand in (name, name.upper(), name.lower()):
             val = os.environ.get(cand)
             if val:
                 return val
-    raise KeyError(f"none of {names} in the environment — "
-                   "`source ~/code/chartmetric/devin-secrets.env` first")
+    if default is not None:
+        return default
+    raise KeyError(f"none of {names} in the environment — source "
+                   "~/code/chartmetric/devin-secrets.env, or run inside `make jupyter`")
 
 def ch_config(warehouse=None):
     spec = CH_WAREHOUSES[warehouse or WAREHOUSE]
-    host = _env(spec["host"]).split("://")[-1].split("/")[0].split(":")[0]  # tolerate a full URL
+    host = _env(spec["host"], spec["host_default"]).split("://")[-1].split("/")[0].split(":")[0]
     return {"warehouse": warehouse or WAREHOUSE, "host": host,
             "user": _env(spec["user"]), "password": _env(spec["password"]),
-            "port": CH_NATIVE_PORT}
+            "port": CH_NATIVE_PORT, "expect_db": spec["expect_db"]}
 
 def ch_client(warehouse=None):
     cfg = ch_config(warehouse)
@@ -96,9 +116,13 @@ def run_ch(sql: str, warehouse=None) -> None:              # DDL / no result set
     finally:
         con.disconnect()
 
-_cfg = ch_config()      # print what you actually connected to — a mis-pointed
+# Print what you connected to, then PROVE it is the right warehouse.
+_cfg = ch_config()
 print(f"warehouse: {_cfg['warehouse']}  host: {_cfg['host']}  user: {_cfg['user']}")
-query_df("SELECT 1 AS ok")                                 # …notebook fails here, not 10 cells later
+_dbs = set(query_df("SHOW DATABASES").iloc[:, 0])
+assert _cfg["expect_db"] in _dbs, (
+    f"connected to {_cfg['host']} but '{_cfg['expect_db']}' is not visible "
+    f"(saw: {sorted(_dbs)}) — wrong warehouse, or this user lacks the grant")
 ```
 
 Wrap `query_df` with the parquet cache in `caching.md` for heavy queries — and
