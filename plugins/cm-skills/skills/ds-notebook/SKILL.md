@@ -112,5 +112,10 @@ runs. See the script's header for usage.
 - Credentials come from `~/code/chartmetric/devin-secrets.env` (`source` it
   before running). **Databases are read-only — SELECT only.** The one sanctioned
   write is the server-side scratch table in a scratch DB (e.g. `chartmetric_test`).
-- ClickHouse connect: `from data_utils.clickhouse_access import clickhouse_connect`.
+- ClickHouse: pick the **warehouse** first — `rw-standard` (music:
+  `chartmetric_analytics` / `chartmetric_raw_data`) or `vert` (new verticals:
+  `new_vertical` — athletes, brands). Separate clusters, separate credentials, and
+  **no cross-warehouse joins**. Use the warehouse registry in
+  `reference/clickhouse.md`; `data_utils.clickhouse_access.clickhouse_connect()`
+  hardcodes the rw-standard host and will silently target the music warehouse.
 - Only local sessions can reach the datastores; cloud sessions cannot.

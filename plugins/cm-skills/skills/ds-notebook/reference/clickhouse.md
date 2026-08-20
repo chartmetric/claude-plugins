@@ -1,9 +1,90 @@
 # ClickHouse — connection, memory safety, join cookbook
 
+## Which warehouse? (decide before writing a query)
+
+Chartmetric runs **separate ClickHouse Cloud warehouses**. They are distinct
+clusters with distinct credentials, and there is **no `REMOTE` grant — you cannot
+join across them in one query**. Pick one per notebook; if you need both, land an
+intermediate result and join it in pandas.
+
+| Warehouse | Databases | Host (default) | Credentials, in priority order |
+|---|---|---|---|
+| `rw-standard` | `chartmetric_analytics`, `chartmetric_raw_data`, `chartmetric_sm_raw_data` | `grkyl47mbo.us-west-2.aws.clickhouse.cloud` | `CH_USER`/`CH_PASSWORD`, else `clickhouse_user`/`clickhouse_password` |
+| `vert` (new verticals) | `new_vertical` — athletes, brands, creators | `j1ez4a7j4k.us-west-2.aws.clickhouse.cloud` | `CH_VERT_USER`/`CH_VERT_PASSWORD`, else `clickhouse_newverticals_user`/`clickhouse_newverticals_password` |
+
+**Credential names differ by environment**, which is why the registry below takes
+a candidate list rather than one name:
+
+- inside the docker Jupyter (`make jupyter`), docker-compose forwards `CH_USER`,
+  `CH_PASSWORD`, `CH_VERT_USER`, `CH_VERT_PASSWORD` — and nothing else;
+- with `devin-secrets.env` sourced you get the `clickhouse_*` /
+  `clickhouse_newverticals_*` names instead.
+
+Host falls back to a per-warehouse default for the same reason:
+`CLICKHOUSE_VERT_HOST` is a `devin-secrets.env` name and is **not** forwarded
+into the Jupyter container.
+
+`data_utils.clickhouse_access.clickhouse_connect()` supports `service="vert"`
+since data-utils **1.19.0** — but **older versions silently ignore the argument
+and fall back to rw-standard**, where `new_vertical` does not exist. A silent
+wrong-warehouse connection is the worst failure mode here, so the registry builds
+the client explicitly and §0 asserts that the database you expect is actually
+visible. `SELECT 1` succeeds on both warehouses and cannot tell them apart.
+
 ## Connection & helpers (standalone, inline in §0)
 
 ```python
-from data_utils.clickhouse_access import clickhouse_connect  # returns a clickhouse_driver Client
+import os
+from clickhouse_driver import Client
+
+# ── warehouse registry: the ONE place a warehouse is named ───────────────────
+# Candidate env-var names per field, in priority order (tried verbatim, upper-
+# and lower-cased): the docker Jupyter forwards CH_USER / CH_VERT_USER, while a
+# sourced devin-secrets.env supplies the clickhouse_* names. Host falls back to a
+# per-warehouse default because CLICKHOUSE_VERT_HOST is not forwarded into the
+# container. `expect_db` is asserted after connecting — SELECT 1 succeeds on both
+# warehouses and cannot tell them apart.
+CH_WAREHOUSES = {
+    "rw-standard": {
+        "host": ("CLICKHOUSE_HOST", "clickhouse_host"),
+        "host_default": "grkyl47mbo.us-west-2.aws.clickhouse.cloud",
+        "user": ("CH_USER", "clickhouse_user"),
+        "password": ("CH_PASSWORD", "clickhouse_password"),
+        "expect_db": "chartmetric_analytics",
+    },
+    "vert": {
+        "host": ("CLICKHOUSE_VERT_HOST", "clickhouse_newverticals_host"),
+        "host_default": "j1ez4a7j4k.us-west-2.aws.clickhouse.cloud",
+        "user": ("CH_VERT_USER", "clickhouse_newverticals_user"),
+        "password": ("CH_VERT_PASSWORD", "clickhouse_newverticals_password"),
+        "expect_db": "new_vertical",
+    },
+}
+WAREHOUSE = "rw-standard"   # <-- the only place to change the target
+CH_NATIVE_PORT = 9440       # clickhouse_driver native TLS (HTTPS would be 8443)
+
+def _env(names, default=None):
+    for name in names:
+        for cand in (name, name.upper(), name.lower()):
+            val = os.environ.get(cand)
+            if val:
+                return val
+    if default is not None:
+        return default
+    raise KeyError(f"none of {names} in the environment — source "
+                   "~/code/chartmetric/devin-secrets.env, or run inside `make jupyter`")
+
+def ch_config(warehouse=None):
+    spec = CH_WAREHOUSES[warehouse or WAREHOUSE]
+    host = _env(spec["host"], spec["host_default"]).split("://")[-1].split("/")[0].split(":")[0]
+    return {"warehouse": warehouse or WAREHOUSE, "host": host,
+            "user": _env(spec["user"]), "password": _env(spec["password"]),
+            "port": CH_NATIVE_PORT, "expect_db": spec["expect_db"]}
+
+def ch_client(warehouse=None):
+    cfg = ch_config(warehouse)
+    return Client(host=cfg["host"], user=cfg["user"], password=cfg["password"],
+                  port=cfg["port"], secure=True, send_receive_timeout=3300)
 
 # Memory-safety settings applied to EVERY query:
 #  - analyzer on (multi-CTE / nested-IN queries need it; matches the sync jobs)
@@ -19,8 +100,8 @@ CH_SETTINGS = {
     "max_threads": 8,
 }
 
-def query_df(sql: str) -> "pd.DataFrame":
-    con = clickhouse_connect()
+def query_df(sql: str, warehouse=None) -> "pd.DataFrame":
+    con = ch_client(warehouse)
     try:
         rows, col_types = con.execute(sql, with_column_types=True, settings=CH_SETTINGS)
     finally:
@@ -28,22 +109,33 @@ def query_df(sql: str) -> "pd.DataFrame":
     cols = [name.split('.')[-1] for name, _ in col_types]  # strip analyzer table-qualifier prefixes
     return pd.DataFrame(rows, columns=cols)
 
-def run_ch(sql: str) -> None:                              # DDL / no result set
-    con = clickhouse_connect()
+def run_ch(sql: str, warehouse=None) -> None:              # DDL / no result set
+    con = ch_client(warehouse)
     try:
         con.execute(sql, settings=CH_SETTINGS)
     finally:
         con.disconnect()
+
+# Print what you connected to, then PROVE it is the right warehouse.
+_cfg = ch_config()
+print(f"warehouse: {_cfg['warehouse']}  host: {_cfg['host']}  user: {_cfg['user']}")
+_dbs = set(query_df("SHOW DATABASES").iloc[:, 0])
+assert _cfg["expect_db"] in _dbs, (
+    f"connected to {_cfg['host']} but '{_cfg['expect_db']}' is not visible "
+    f"(saw: {sorted(_dbs)}) — wrong warehouse, or this user lacks the grant")
 ```
 
-Wrap `query_df` with the parquet cache in `caching.md` for heavy queries.
+Wrap `query_df` with the parquet cache in `caching.md` for heavy queries — and
+include the warehouse name in the cache key, or two warehouses will collide on
+identical SQL.
 
 **Ad-hoc probing outside the notebook** (e.g. schema/freshness checks): the
-ClickHouse HTTPS endpoint works with `curl` — `https://$clickhouse_host:$CLICKHOUSE_PORT/`
-(port is typically 8443 = TLS) with `clickhouse_user`/`clickhouse_password` from
+ClickHouse HTTPS endpoint works with `curl` — `https://<host>:$CLICKHOUSE_PORT/`
+(port is typically 8443 = TLS) with the matching warehouse's user/password from
 `devin-secrets.env`. Pass the spill settings as URL params. Note the ad-hoc user
-may have narrower grants than the notebook's `clickhouse_connect()` (e.g. no
-access to the scratch DB).
+may have narrower grants than the notebook's (e.g. no access to the scratch DB) —
+on the vert warehouse the read path is read-only, so verify a `CREATE` grant
+before designing around a scratch table.
 
 ## Server-side eligibility scratch table (the anti-OOM pattern)
 
