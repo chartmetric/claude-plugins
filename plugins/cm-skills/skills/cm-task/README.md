@@ -55,7 +55,7 @@ runs.
 
 ## What the first shot feels like from your seat
 
-You are touched about three times. Everything between your touches is
+You are touched a handful of times. Everything between your touches is
 autonomous but visible in the transcript.
 
 1. **Intake (silent).** It reads your repo's `CLAUDE.md`/`AGENTS.md`,
@@ -199,8 +199,8 @@ does those hand-offs via the MCP tools or manually.
 ## FAQ
 
 **Why did it refuse to start?** Three common reasons: your working tree
-is dirty and out of the declared scope, the verify command is already
-green (it can't prove work that doesn't exist yet — fix the verifier),
+has pre-existing uncommitted changes (any dirt — the reviewer would
+attribute it to this task), the verify command is already green (it can't prove work that doesn't exist yet — fix the verifier),
 or the interview revealed the task needs more than one PR (it offered a
 split).
 

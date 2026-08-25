@@ -6,8 +6,9 @@ description: Run a single task in an existing repo with harness discipline - int
 # Run one task with harness discipline
 
 Bring the harness-template workflow to a SINGLE task in an existing repo:
-one task, one branch, one PR, one session — plus iteration rounds when
-feedback comes back after the first shot. You are the ORCHESTRATOR: by
+one task, one branch, one PR — the first shot in one session, plus
+iteration rounds (each possibly its own later session) when feedback
+comes back. You are the ORCHESTRATOR: by
 default a subagent implements while you hold the brief, verify its
 claims independently, and run review. You stay lean; the agent burns the
 context.
@@ -40,9 +41,10 @@ Args may hold an Asana URL, a Slack thread URL, free text, or nothing.
 
 Ask only what intake could not establish. `AskUserQuestion` caps at 4
 questions per call, so split into three: acceptance criteria alone
-first (it needs room), then questions 2–4, then 5–7 (drop any you
-already know cold); every option you offer must be a real, discovered
-value, not a placeholder:
+first (it needs room), then questions 2–5, then 6–7 — question 6 exists
+only when question 5 chose delegate, which is why they sit in separate
+calls (drop any you already know cold); every option you offer must be
+a real, discovered value, not a placeholder:
 
 1. **Acceptance criteria** — draft a list from ticket + code reading;
    let the user confirm/edit. Each criterion must be mechanically
@@ -119,8 +121,10 @@ You run this yourself, always — never the implementer agent.
 tool with the chosen model, pointing it at the brief file (it cannot see
 this conversation — the brief must carry everything). Its instructions:
 TDD (failing test first when `verify_cmd` is a test), follow repo
-conventions, stay INSIDE the scope globs, loop until `verify_cmd` and
-the gates are green, report what changed and why.
+conventions, stay INSIDE the scope globs, NEVER commit — all work stays
+as the uncommitted working tree (the reviewer audits exactly that) —
+loop until `verify_cmd` and the gates are green, report what changed
+and why.
 
 Ops rules, each proven the hard way:
 
@@ -142,7 +146,7 @@ the human is present and can stop you.
 
 ## Step 6 — Fresh-context review
 
-Spawn exactly ONE reviewer subagent via the Task tool (prefer a
+Spawn ONE reviewer subagent per review pass via the Task tool (prefer a
 code-reviewer agent type if available, else general-purpose), passing
 the reviewer model chosen in Step 2 as the `model` param (default
 `"opus"`) — the reviewer must never SILENTLY inherit a cheaper session
@@ -155,8 +159,9 @@ status --porcelain`, and for each changed path decide whether it matches
 any scope glob from the brief. Collect the non-matching paths — that
 list goes into the brief's scope section for the reviewer to judge.
 
-Fill and pass this brief verbatim (drop the two optional blocks when they
-don't apply):
+Fill and pass this brief verbatim — drop the two optional blocks when
+they don't apply; delta reviews (Step 9.7) additionally substitute the
+diff scope and the enumerated round R-ids:
 
 ```
 You are a fresh-context reviewer auditing a just-implemented task. Do
@@ -275,7 +280,8 @@ text) with drafts prepared:
    this task; offer it as the default option alongside "none" (a
    legitimate answer). Ask the question every time. If accepted, apply
    the edit on this same branch. Retro doc edits (`CLAUDE.md` /
-   `AGENTS.md`) are exempt from the scope-glob check in later rounds.
+   `AGENTS.md`) are exempt from the scope-glob check in later rounds
+   AND from review — they are doc-only lesson edits, not code.
 2. **Leftovers** — surviving should_fix / backlog_worthy items: file via
    Asana, note in the PR body, or drop. Offer the drafted dispositions.
 
@@ -300,9 +306,12 @@ text) with drafts prepared:
   ```
 
   The last-reviewed SHA is the final first-shot commit (retro doc edits
-  included — they are review-exempt by the Step 7 rule). The PR is the
-  durable anchor: a later session picks up iteration rounds from this
-  block alone, days after this session is gone.
+  included — they are review-exempt by the Step 7 rule). After the PR
+  exists, confirm the block survived in the final body — PR-creation
+  skills apply their own templates — and patch the body if it was
+  dropped. The PR is the durable anchor: a later session picks up
+  iteration rounds from this block alone, long after this session is
+  gone.
 - NEVER `git push` or create the PR without explicit user OK.
 
 ## Step 9 — Iteration rounds (post-preview feedback)
@@ -314,10 +323,12 @@ no silent drift from what was asked.
 
 Per round:
 
-1. **Recover the brief.** Read the `cm-task brief` block from the PR
-   body into a scratchpad file. If it's missing (pre-dates this skill
-   version), reconstruct a minimal brief from the PR description + diff
-   and confirm it with the user. Verify the recorded last-reviewed SHA
+1. **Acquire the branch, recover the brief.** Check that the local tree
+   is clean (Step 4.1 rule), then check out the PR's branch (`gh pr
+   checkout <N>`, or fetch + checkout). Read the `cm-task brief` block
+   from the PR body into a scratchpad file. If it's missing (pre-dates
+   this skill version), reconstruct a minimal brief from the PR
+   description + diff and confirm it with the user. Verify the recorded last-reviewed SHA
    exists on the branch; any commits after it are unreviewed — fold
    them into this round's delta-review scope.
 2. **Intake + triage.** Pull the feedback (Slack thread, PR comments,
