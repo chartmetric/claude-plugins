@@ -46,7 +46,7 @@ expensive.
   team's normal order — issue in Slack, task after).
 - `/cm-task <free text>` — describe the task inline.
 - `/cm-task <pr-url>` — **iteration mode**: pick up feedback rounds on a
-  PR a previous run shipped, days later, in a fresh session.
+  PR a previous run shipped, however much later, in a fresh session.
 - `/cm-task` — bare; it interviews you from nothing.
 
 Whatever a ticket says is treated as *enrichment, never a complete
@@ -117,9 +117,10 @@ in dependency order, rather than soldiering on into a sprawling diff.
 
 ## Iteration rounds — after the preview
 
-Three days later the PM previews the work and wants changes. You open a
-fresh session and run `/cm-task <pr-url>` (rounds are always explicit —
-never auto-detected). Each round:
+Sooner or later the PM previews the work and wants changes — possibly
+long after the original session is gone. You open a fresh session and
+run `/cm-task <pr-url>` (rounds are always explicit — never
+auto-detected). Each round:
 
 - **Brief recovery.** The contract is read back out of the PR body — no
   repo state files, no dependence on the dead session.
