@@ -8,10 +8,9 @@ description: Run a single task in an existing repo with harness discipline - int
 Bring the harness-template workflow to a SINGLE task in an existing repo:
 one task, one branch, one PR — the first shot in one session, plus
 iteration rounds (each possibly its own later session) when feedback
-comes back. You are the ORCHESTRATOR: by
-default a subagent implements while you hold the brief, verify its
-claims independently, and run review. You stay lean; the agent burns the
-context.
+comes back. You are the ORCHESTRATOR: by default a subagent implements
+while you hold the brief, verify its claims independently, and run
+review. You stay lean; the agent burns the context.
 
 This is **discipline, not enforcement.** Nothing here is mechanically
 guaranteed the way the harness-template runner enforces it — no phase
@@ -328,9 +327,9 @@ Per round:
    checkout <N>`, or fetch + checkout). Read the `cm-task brief` block
    from the PR body into a scratchpad file. If it's missing (pre-dates
    this skill version), reconstruct a minimal brief from the PR
-   description + diff and confirm it with the user. Verify the recorded last-reviewed SHA
-   exists on the branch; any commits after it are unreviewed — fold
-   them into this round's delta-review scope.
+   description + diff and confirm it with the user. Verify the
+   recorded last-reviewed SHA exists on the branch; any commits after
+   it are unreviewed — fold them into this round's delta-review scope.
 2. **Intake + triage.** Pull the feedback (Slack thread, PR comments,
    verbal). Classify each item:
    - *tweak* — inside the existing acceptance criteria (copy, labels,
@@ -345,8 +344,8 @@ Per round:
    changed/new criteria, per-item verify. Never rewrite the original
    sections — the trail of what was agreed vs what changed is the
    point. Confirm with the user before any code.
-4. **Red-first per amendment**, on the same branch. Working-tree
-   cleanliness check as in Step 4.
+4. **Red-first per amendment**, on the same branch (9.1 already
+   verified it clean).
 5. **Implement.** Same execution mode as the first shot. Delegate mode:
    message the original implementer agent if its context survives, else
    fresh agent from the amended brief file.

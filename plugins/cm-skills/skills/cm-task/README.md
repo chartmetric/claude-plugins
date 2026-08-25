@@ -64,10 +64,10 @@ autonomous but visible in the transcript.
 2. **Interview — touches 1–3.** Up to three `AskUserQuestion` modals.
    First: confirm or edit the drafted acceptance criteria (numbered
    R1..Rn — the review matrix keys on these). Then: the verify command,
-   scope globs, whether the task is security-sensitive. Then: execution
-   mode (delegate to an implementer agent, the default, or inline), the
-   implementer model, and the reviewer model. Every option offered is a
-   real value it discovered, not a placeholder.
+   scope globs, whether the task is security-sensitive, and the
+   execution mode (delegate to an implementer agent, the default, or
+   inline). Then: the implementer and reviewer models. Every option
+   offered is a real value it discovered, not a placeholder.
 3. **Brief (visible).** A compact contract — goal, criteria, verify
    command, gates, scope, models — written to a *file* before any agent
    exists. That file is load-bearing: if the implementer dies mid-task
@@ -200,9 +200,9 @@ does those hand-offs via the MCP tools or manually.
 
 **Why did it refuse to start?** Three common reasons: your working tree
 has pre-existing uncommitted changes (any dirt — the reviewer would
-attribute it to this task), the verify command is already green (it can't prove work that doesn't exist yet — fix the verifier),
-or the interview revealed the task needs more than one PR (it offered a
-split).
+attribute it to this task), the verify command is already green (it
+can't prove work that doesn't exist yet — fix the verifier), or the
+interview revealed the task needs more than one PR (it offered a split).
 
 **Can I skip the interview?** No — that's the point. A ticket is
 enrichment, not a spec, and the confirmed brief is the contract the whole
