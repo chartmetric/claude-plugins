@@ -46,8 +46,6 @@ claude plugin update cm-ai@chartmetric-tools
 | `gh-stack` | Manage stacked branches & PRs with the `gh stack` CLI extension: build, navigate, rebase, sync, and merge a chain of dependent PRs, run non-interactively so it never hangs on a prompt |
 | `rag-add-endpoint` | Add an API endpoint to the Flow AI / Melodi RAG "sitemap" knowledge base: gate on whether a live endpoint exists (else "build the API first"), then edit chartmetric-one's `api-registry.ts` (`flow`) or emit reviewable Postgres SQL (`main`) + a PR, with the activation timeline |
 | `explain-code` | Explain code with an ASCII diagram, a step-by-step walkthrough, a gotcha, and a suggested improvement |
-| `write-react-code` | Implement React + TypeScript features following project conventions (ESLint, strict types, context/hook thresholds, file organization, design-system usage) |
-| `frontend-guidelines` | Chartmetric Web App frontend conventions & rules: Tailwind vs SCSS modules, design-system components, import ordering, i18n, TypeScript conventions. Pairs with `write-react-code` |
 
 Invoked as `/cm-skills:<skill>`, e.g. `/cm-skills:cm-pr-review`.
 
