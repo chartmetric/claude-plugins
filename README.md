@@ -35,7 +35,7 @@ claude plugin update cm-ai@chartmetric-tools
 
 | Skill | What it does |
 | --- | --- |
-| `cm-task` | Run a single task (one branch, one PR) with harness discipline: interview → confirmed brief, red verifier before code, TDD, fresh-context review subagent, micro-retro lesson into the repo's CLAUDE.md. Accepts an Asana or Slack URL |
+| `cm-task` | Run a single task (one branch, one PR) with harness discipline: interview → confirmed brief, red verifier before code, delegated TDD implementation, fresh-context review with a requirements matrix, gated auto-fix, iteration rounds for post-preview feedback, micro-retro lesson. Accepts an Asana URL, a Slack URL, or a PR URL (iteration) |
 | `clickhouse-benchmark` | Benchmark/compare ClickHouse queries via system.query_log (P50/P90/P99, bytes read, memory) |
 | `query-database` | READ-ONLY queries against RDS/ClickHouse/Elasticsearch/Snowflake via devin-secrets.env (local sessions only) |
 | `ds-notebook` | Scaffold & harden standalone Chartmetric data-science Jupyter notebooks: ClickHouse-first (or Snowflake) queries with memory-safe patterns, freshness sentinels, schema verification, server-side eligibility scratch tables, parquet caching, sanity/validation diagnostics, and disabled write-back cells |
@@ -55,11 +55,11 @@ Invoked as `/cm-skills:<skill>`, e.g. `/cm-skills:cm-pr-review`.
 
 | Skill | What it does |
 | --- | --- |
-| `cm-task` | Run a single task (one branch, one PR) with harness discipline: interview → confirmed brief, red verifier before code, TDD, fresh-context review subagent, micro-retro lesson into the repo's CLAUDE.md. Accepts an Asana or Slack URL |
 | `slack-summary` | Summarize a Slack thread from its URL |
 | `session-report` | Post a full-context work report (problem / fix / current state / links) to a Slack channel |
 | `slack-to-asana` | File Asana task(s) on Unified CM Tasks from a Slack thread, link PRs, reply in-thread |
 | `release-notes` | Generate (and optionally post) the "Chartmetric Production Release" `#product-updates` message from a deploy message / PR / release tag, resolving Asana tasks and combining FE+BE release waves |
+| `de-monthly-update` | Compile the Data Engineering monthly all-hands update: sweep GitHub and Slack for what each engineer shipped, verify shipped-vs-in-flight, assemble themed sections with per-person attribution |
 
 Invoked as `/cm-comms:<skill>`, e.g. `/cm-comms:slack-summary`.
 
