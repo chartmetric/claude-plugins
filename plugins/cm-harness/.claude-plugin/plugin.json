@@ -1,0 +1,8 @@
+{
+  "name": "cm-harness",
+  "description": "Chartmetric phase harness for Cowork. /feature-intake — turn a plain-language feature ask into an ADR-grounded entry in docs/PRD.md, written for PMs and designers; /harness — advance the phase pipeline: precheck, status, phase proposals, triage, and running a phase. Both are thin loaders: they read the target repo's own .agents/commands/<name>.md at runtime, so the repo stays the single source of truth and a command change needs no release here.",
+  "version": "0.2.0",
+  "author": {
+    "name": "Chartmetric Engineering"
+  }
+}
