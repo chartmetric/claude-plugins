@@ -2,11 +2,12 @@
 
 Private plugin marketplace for Chartmetric's Claude Code skills. Access is controlled by this repo's visibility — anyone who can clone it can install from it.
 
-The marketplace ships three plugins:
+The marketplace ships four plugins:
 
 - **`cm-skills`** — engineering skills (code, PRs, databases, reviews)
 - **`cm-comms`** — team communication & reporting skills (Slack + Asana)
 - **`cm-ai`** — AI-related skills (reading Casper agent sessions)
+- **`cm-harness`** — the `chartmetric-app-monorepo` phase harness, **for Cowork** (in Claude Code the repo serves these commands natively)
 
 Install whichever you need.
 
@@ -17,6 +18,7 @@ claude plugin marketplace add chartmetric/claude-plugins
 claude plugin install cm-skills@chartmetric-tools    # engineering
 claude plugin install cm-comms@chartmetric-tools     # comms & reporting
 claude plugin install cm-ai@chartmetric-tools        # AI-related skills
+claude plugin install cm-harness@chartmetric-tools   # phase harness (Cowork)
 ```
 
 Or inside a Claude Code session: `/plugin` → browse `chartmetric-tools` → install `cm-skills`, `cm-comms`, and/or `cm-ai`.
@@ -29,6 +31,7 @@ claude plugin marketplace update chartmetric-tools
 claude plugin update cm-skills@chartmetric-tools
 claude plugin update cm-comms@chartmetric-tools
 claude plugin update cm-ai@chartmetric-tools
+claude plugin update cm-harness@chartmetric-tools
 ```
 
 ## What's in `cm-skills` (engineering)
@@ -69,6 +72,25 @@ Invoked as `/cm-comms:<skill>`, e.g. `/cm-comms:slack-summary`.
 | `replit-env` | Reach a repo's Replit workspace (cm-workspace or the kevin repl) over SSH to run commands there, sync its git checkout with GitHub, or unstick a Replit↔GitHub sync — with the `ssh -n` gotcha, host-rotation recovery, per-repl auth (bundle transport vs askpass shim), the kevin auto-commit watcher, and cm-workspace's prod side effects |
 
 Invoked as `/cm-ai:<skill>`, e.g. `/cm-ai:reading-casper-sessions`.
+
+## What's in `cm-harness` (the phase harness, for Cowork)
+
+| Skill | What it does |
+| --- | --- |
+| `feature-intake` | Turn a plain-language feature ask into an ADR-grounded entry in `docs/PRD.md` — written for PMs and designers, stops and asks when no architectural decision covers the surface rather than inventing one |
+| `harness` | Advance the phase pipeline: precheck, status, phase proposals, triage of a stuck phase, and running a phase |
+
+Unlike the other three plugins, these skills carry **no instructions of their own**. Each
+is a thin loader that finds the target repo and reads `.agents/commands/<name>.md` from it
+at runtime, so the repo stays the single source of truth and a command change needs no
+release here. What lives in this plugin is only what the repo cannot know: how to locate
+itself from each environment, and what that environment can actually do — see
+`plugins/cm-harness/skills/harness/references/environments.md`.
+
+**This one is for Cowork.** Claude Code already exposes both commands natively from the
+monorepo's `.claude/commands/`; installing `cm-harness` there gives you two paths to the
+same instructions, and the plugin's copy can fire on description match where the command
+files set `disable-model-invocation: true`.
 
 ## Updating
 

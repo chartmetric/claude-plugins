@@ -18,6 +18,11 @@
       "name": "cm-ai",
       "source": "./plugins/cm-ai",
       "description": "Chartmetric AI-related skills: reading-casper-sessions, replit-env"
+    },
+    {
+      "name": "cm-harness",
+      "source": "./plugins/cm-harness",
+      "description": "Chartmetric phase harness for Cowork: feature-intake, harness"
     }
   ]
 }
