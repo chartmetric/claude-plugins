@@ -1,0 +1,18 @@
+# Chartmetric managed Codex config.
+#
+# Merged into every employee's ~/.codex/config.toml by MDM. Keep it to the minimum that
+# bootstraps discovery: the marketplace, and Maestro. Everything else stays personal.
+
+[marketplaces.chartmetric-tools]
+source_type = "git"
+source = "https://github.com/chartmetric/claude-plugins.git"
+
+[plugins."cm-maestro@chartmetric-tools"]
+enabled = true
+
+[plugins."cm-skills@chartmetric-tools"]
+enabled = true
+
+# Registered directly as well, so Maestro resolves before the plugin cache is warm.
+[mcp_servers.maestro]
+url = "https://maestro.chartmetric.com/mcp"

@@ -23,6 +23,11 @@
       "name": "cm-harness",
       "source": "./plugins/cm-harness",
       "description": "Chartmetric phase harness for Cowork: feature-intake, harness"
+    },
+    {
+      "name": "cm-maestro",
+      "source": "./plugins/cm-maestro",
+      "description": "Chartmetric internal MCP connectors: Maestro (read-only Postgres/ClickHouse/Snowflake, data map, Airflow, chartmetric-claude PR review) plus its staging twin"
     }
   ]
 }

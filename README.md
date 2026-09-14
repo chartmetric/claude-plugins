@@ -2,12 +2,13 @@
 
 Private plugin marketplace for Chartmetric's Claude Code skills. Access is controlled by this repo's visibility — anyone who can clone it can install from it.
 
-The marketplace ships four plugins:
+The marketplace ships five plugins:
 
 - **`cm-skills`** — engineering skills (code, PRs, databases, reviews)
 - **`cm-comms`** — team communication & reporting skills (Slack + Asana)
 - **`cm-ai`** — AI-related skills (reading Casper agent sessions)
 - **`cm-harness`** — the `chartmetric-app-monorepo` phase harness, **for Cowork** (in Claude Code the repo serves these commands natively)
+- **`cm-maestro`** — internal MCP connectors (Maestro: read-only databases, data map, Airflow, PR review)
 
 Install whichever you need.
 
@@ -19,7 +20,20 @@ claude plugin install cm-skills@chartmetric-tools    # engineering
 claude plugin install cm-comms@chartmetric-tools     # comms & reporting
 claude plugin install cm-ai@chartmetric-tools        # AI-related skills
 claude plugin install cm-harness@chartmetric-tools   # phase harness (Cowork)
+claude plugin install cm-maestro@chartmetric-tools   # internal MCP connectors
 ```
+
+### Codex
+
+The same marketplace works in the Codex app and CLI:
+
+```bash
+codex plugin marketplace add https://github.com/chartmetric/claude-plugins.git
+codex plugin add cm-maestro@chartmetric-tools
+codex mcp login maestro
+```
+
+To push this to everyone's machine instead of asking each person to run it, see [`mdm/`](./mdm).
 
 Or inside a Claude Code session: `/plugin` → browse `chartmetric-tools` → install `cm-skills`, `cm-comms`, and/or `cm-ai`.
 
@@ -32,6 +46,7 @@ claude plugin update cm-skills@chartmetric-tools
 claude plugin update cm-comms@chartmetric-tools
 claude plugin update cm-ai@chartmetric-tools
 claude plugin update cm-harness@chartmetric-tools
+claude plugin update cm-maestro@chartmetric-tools
 ```
 
 ## What's in `cm-skills` (engineering)

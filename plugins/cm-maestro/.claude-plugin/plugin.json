@@ -1,0 +1,9 @@
+{
+  "name": "cm-maestro",
+  "description": "Chartmetric internal MCP connectors. Registers Maestro (maestro.chartmetric.com) and its staging twin as remote MCP servers: read-only Postgres/ClickHouse/Snowflake, the data map, read-only Airflow, and the chartmetric-claude GitHub App PR-review tools. Each user authenticates with their own @chartmetric.com Google account.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Chartmetric Engineering"
+  },
+  "mcpServers": "./.mcp.json"
+}

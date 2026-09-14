@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "maestro": {
+      "type": "http",
+      "url": "https://maestro.chartmetric.com/mcp"
+    },
+    "maestro-dev": {
+      "type": "http",
+      "url": "https://maestro-dev.chartmetric.com/mcp",
+      "enabled": false
+    }
+  }
+}
