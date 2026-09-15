@@ -1,7 +1,7 @@
 {
   "name": "cm-skills",
   "description": "Chartmetric engineering skills for Claude Code. Ships a PreToolUse hook that routes PR reviews/approvals/merges through the Maestro chartmetric-claude GitHub App.",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "author": {
     "name": "Chartmetric Engineering"
   }

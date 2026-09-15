@@ -1,0 +1,23 @@
+# Rename to `.replit` at the app root so Replit's Run button works with no setup.
+run = "npm run dev"
+entrypoint = "server/index.js"
+modules = ["nodejs-20"]
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["npm", "start"]
+build = ["npm", "run", "build"]
+deploymentTarget = "autoscale"
+
+[[ports]]
+localPort = 3000
+externalPort = 80
+
+# Secrets go in the Secrets pane — never here, never in the repo, never in a .env that
+# gets committed. The spelling is CLICKHOUSE_*; the CH_* names belong to the notebook
+# container and are not read by this app.
+#
+#   CLICKHOUSE_HOST  CLICKHOUSE_PORT  CLICKHOUSE_USER  CLICKHOUSE_PASSWORD
+#   CLICKHOUSE_VERT_HOST  CLICKHOUSE_VERT_USER  CLICKHOUSE_VERT_PASSWORD   (vert only)

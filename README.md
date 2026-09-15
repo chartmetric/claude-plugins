@@ -42,6 +42,7 @@ claude plugin update cm-harness@chartmetric-tools
 | `clickhouse-benchmark` | Benchmark/compare ClickHouse queries via system.query_log (P50/P90/P99, bytes read, memory) |
 | `query-database` | READ-ONLY queries against RDS/ClickHouse/Elasticsearch/Snowflake via devin-secrets.env (local sessions only) |
 | `ds-notebook` | Scaffold & harden standalone Chartmetric data-science Jupyter notebooks: ClickHouse-first (or Snowflake) queries with memory-safe patterns, freshness sentinels, schema verification, server-side eligibility scratch tables, parquet caching, sanity/validation diagnostics, and disabled write-back cells |
+| `replit-port` | Port a DS notebook into a Replit app: scaffold the server that holds the `CLICKHOUSE_*` secrets, write the house-style `PROMPT.md` for Replit's agent, build the parity fixture that proves the app still reproduces the notebook, and carry the notebook's caveats onto the screen. Pairs with `ds-notebook` (upstream) and `cm-ai:replit-env` (SSH into an existing repl) |
 | `cm-pr-review` | Triage the PRs awaiting your review: discover direct review requests in `chartmetric`, draft a review per PR using each repo's own conventions, then post/approve/skip per PR on confirmation |
 | `cm-takehome-review` | Score candidate take-home PRs against a rubric (runs each branch in a throwaway worktree to verify tests) and write local-only markdown scorecards + a comparison doc — never posts to GitHub |
 | `multi-repo-pr` | One piece of work spanning several repos: one branch + one PR per repo, cross-linked |
