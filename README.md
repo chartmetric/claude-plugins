@@ -60,6 +60,7 @@ Invoked as `/cm-skills:<skill>`, e.g. `/cm-skills:cm-pr-review`.
 | `slack-summary` | Summarize a Slack thread from its URL |
 | `session-report` | Post a full-context work report (problem / fix / current state / links) to a Slack channel |
 | `slack-to-asana` | File Asana task(s) on Unified CM Tasks from a Slack thread, link PRs, reply in-thread |
+| `asana-task` | File one Asana task on Unified CM Tasks from the session, a PR, or free text — infers the title prefix (`BE:`/`FE:`/`PE:`/…) and Team from the repo, sets Engineer/Planner/follower to you, patches an existing PR body to link back |
 | `release-notes` | Generate (and optionally post) the "Chartmetric Production Release" `#product-updates` message from a deploy message / PR / release tag, resolving Asana tasks and combining FE+BE release waves |
 | `de-monthly-update` | Compile the Data Engineering monthly all-hands update: sweep GitHub and Slack for what each engineer shipped, verify shipped-vs-in-flight, assemble themed sections with per-person attribution |
 
@@ -99,9 +100,9 @@ Plugins auto-update from this repo. To add or change a skill, edit `plugins/<plu
 
 ## Requirements
 
-- `slack-summary`, `session-report`, `slack-to-asana`, `ship-pr`, `release-notes` need the claude.ai Slack (and Asana) connectors: claude.ai → Settings → Connectors (`ship-pr` degrades gracefully — GitHub-only steps still run without them)
+- `slack-summary`, `session-report`, `slack-to-asana`, `asana-task`, `ship-pr`, `release-notes` need the claude.ai Slack (and Asana) connectors: claude.ai → Settings → Connectors (`ship-pr` degrades gracefully — GitHub-only steps still run without them)
 - `clickhouse-benchmark` needs `CLICKHOUSE_HOST` / `CLICKHOUSE_PORT` / `clickhouse_user` / `clickhouse_password` in your shell env
-- `cm-pr-review`, `cm-takehome-review`, `release-notes`, `multi-repo-pr`, `ship-pr`, `rag-add-endpoint` need the `gh` CLI authenticated (`gh auth status`); `cm-takehome-review` also needs the take-home repos cloned under `~/code/chartmetric/`
+- `cm-pr-review`, `cm-takehome-review`, `release-notes`, `multi-repo-pr`, `ship-pr`, `rag-add-endpoint`, `asana-task` need the `gh` CLI authenticated (`gh auth status`); `cm-takehome-review` also needs the take-home repos cloned under `~/code/chartmetric/`
 - `rag-add-endpoint` needs read-only DB access (local session + `devin-secrets.env`) for its feasibility checks, and chartmetric-one cloned for the `flow`-endpoint path
 - `reading-casper-sessions` needs a read-only `CASPER_SESSION_READ_TOKEN` in your shell env (mint one at https://casper.chartmetric.com/settings) and `curl`
 
