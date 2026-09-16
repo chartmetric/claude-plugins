@@ -88,7 +88,7 @@ rounds reference it instead of re-explaining the task.
 
 **Slack-first tasks:** when intake came from a Slack thread and no Asana
 task exists yet, offer (right after the brief is confirmed) to create
-one via the `slack-to-asana` or `/cm-asana-task` skill if installed
+one via the `slack-to-asana` or `asana-task` skill if installed
 (else the Asana MCP tools directly) — the brief's goal + acceptance list
 is the task description, and pass the Slack URL so its custom field
 links back to the thread. If the user declines, proceed — tracking is
