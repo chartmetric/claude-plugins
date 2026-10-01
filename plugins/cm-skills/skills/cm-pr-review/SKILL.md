@@ -12,7 +12,7 @@ The skill is one-shot. No background scheduling, no Slack, no posting until the 
 
 ## Posting identity — always the `chartmetric-claude` App
 
-Every review this skill posts — **approve, request-changes, or comment** — is submitted as the **`chartmetric-claude` GitHub App** (`chartmetric-claude[bot]`), the same way [chartmetric-one#231](https://github.com/chartmetric/chartmetric-one/pull/231) got its bot review-and-approval. It lands under the shared bot's name for **everyone**, never the individual reviewer's GitHub account.
+Every review this skill posts — **approve, request-changes, or comment** — is submitted as the **`chartmetric-claude` GitHub App** (`chartmetric-claude[bot]`), the same way [chartmetric-flow#231](https://github.com/chartmetric/chartmetric-flow/pull/231) got its bot review-and-approval. It lands under the shared bot's name for **everyone**, never the individual reviewer's GitHub account.
 
 - **Reads** (discovery, `gh pr view`, `gh pr diff`, loading repo conventions) run as the user via `gh` — read-only, fine.
 - **Writes** (posting the review) go **exclusively** through the Maestro MCP `submit_pr_review` tool, which authenticates as the App via an installation token.
@@ -230,7 +230,7 @@ Map keys to `submit_pr_review` calls (using the attribution-prefixed body as `bo
 - `S` → log nothing, move on
 - `Q` → stop the loop. Remaining drafts are dropped (not saved anywhere in v1)
 
-`APPROVE` requires a non-empty `body` (the tool rejects a silent rubber stamp); the attribution block plus the review summary always satisfies this. A single `APPROVE` review carries the full write-up **and** the approval in one submission — exactly how chartmetric-one#231's bot review landed.
+`APPROVE` requires a non-empty `body` (the tool rejects a silent rubber stamp); the attribution block plus the review summary always satisfies this. A single `APPROVE` review carries the full write-up **and** the approval in one submission — exactly how chartmetric-flow#231's bot review landed.
 
 Print the `html_url` the tool returns on success.
 

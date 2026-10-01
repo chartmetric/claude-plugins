@@ -48,7 +48,7 @@ claude plugin update cm-harness@chartmetric-tools
 | `multi-repo-pr` | One piece of work spanning several repos: one branch + one PR per repo, cross-linked |
 | `ship-pr` | Finalize session PRs end-to-end: description, assignee = creator, Slack + Asana links (auto-created if missing), reviewer suggestion, PR Preview labels, poll until the preview deploys |
 | `gh-stack` | Manage stacked branches & PRs with the `gh stack` CLI extension: build, navigate, rebase, sync, and merge a chain of dependent PRs, run non-interactively so it never hangs on a prompt |
-| `rag-add-endpoint` | Add an API endpoint to the Flow AI / Melodi RAG "sitemap" knowledge base: gate on whether a live endpoint exists (else "build the API first"), then edit chartmetric-one's `api-registry.ts` (`flow`) or emit reviewable Postgres SQL (`main`) + a PR, with the activation timeline |
+| `rag-add-endpoint` | Add an API endpoint to the Flow AI / Melodi RAG "sitemap" knowledge base: gate on whether a live endpoint exists (else "build the API first"), then edit chartmetric-flow's `api-registry.ts` (`flow`) or emit reviewable Postgres SQL (`main`) + a PR, with the activation timeline |
 | `explain-code` | Explain code with an ASCII diagram, a step-by-step walkthrough, a gotcha, and a suggested improvement |
 
 Invoked as `/cm-skills:<skill>`, e.g. `/cm-skills:cm-pr-review`.
@@ -71,7 +71,7 @@ Invoked as `/cm-comms:<skill>`, e.g. `/cm-comms:slack-summary`.
 | Skill | What it does |
 | --- | --- |
 | `reading-casper-sessions` | Read a Casper agent session — its transcript and trace — via the session read API (`lean` / `full` / `nodes` / `export` views) to inspect, analyze, or diagnose behavior |
-| `replit-env` | Reach a repo's Replit workspace (cm-workspace or the kevin repl) over SSH to run commands there, sync its git checkout with GitHub, or unstick a Replit↔GitHub sync — with the `ssh -n` gotcha, host-rotation recovery, per-repl auth (bundle transport vs askpass shim), the kevin auto-commit watcher, and cm-workspace's prod side effects |
+| `replit-env` | Reach a repo's Replit workspace (cm-workspace or the kevin-slack-bot repl) over SSH to run commands there, sync its git checkout with GitHub, or unstick a Replit↔GitHub sync — with the `ssh -n` gotcha, host-rotation recovery, per-repl auth (bundle transport vs askpass shim), the kevin auto-commit watcher, and cm-workspace's prod side effects |
 
 Invoked as `/cm-ai:<skill>`, e.g. `/cm-ai:reading-casper-sessions`.
 
@@ -103,7 +103,7 @@ Plugins auto-update from this repo. To add or change a skill, edit `plugins/<plu
 - `slack-summary`, `session-report`, `slack-to-asana`, `asana-task`, `ship-pr`, `release-notes` need the claude.ai Slack (and Asana) connectors: claude.ai → Settings → Connectors (`ship-pr` degrades gracefully — GitHub-only steps still run without them)
 - `clickhouse-benchmark` needs `CLICKHOUSE_HOST` / `CLICKHOUSE_PORT` / `clickhouse_user` / `clickhouse_password` in your shell env
 - `cm-pr-review`, `cm-takehome-review`, `release-notes`, `multi-repo-pr`, `ship-pr`, `rag-add-endpoint`, `asana-task` need the `gh` CLI authenticated (`gh auth status`); `cm-takehome-review` also needs the take-home repos cloned under `~/code/chartmetric/`
-- `rag-add-endpoint` needs read-only DB access (local session + `devin-secrets.env`) for its feasibility checks, and chartmetric-one cloned for the `flow`-endpoint path
+- `rag-add-endpoint` needs read-only DB access (local session + `devin-secrets.env`) for its feasibility checks, and chartmetric-flow cloned for the `flow`-endpoint path
 - `reading-casper-sessions` needs a read-only `CASPER_SESSION_READ_TOKEN` in your shell env (mint one at https://casper.chartmetric.com/settings) and `curl`
 
 ## Contributing

@@ -13,7 +13,7 @@ Chartmetric work often spans repos (an API change + the frontend that consumes i
 - main app backend / API = chartmetric-api
 - refresh server = chartmetric_data_script
 - data sync issues = chartmetric_data_script and/or data_infra
-- flow UI = chartmetric-one
+- flow UI = chartmetric-flow
 - background worker = melodi-worker
 
 ## Workflow
