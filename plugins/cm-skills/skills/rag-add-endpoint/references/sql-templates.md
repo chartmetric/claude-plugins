@@ -1,7 +1,7 @@
 # Schemas & templates
 
-These are reconstructed from the repos (chartmetric-one `shared/api-registry.ts`,
-chartmetric-one `data/seed-sitemap-features.sql`, chartmetric_data_script
+These are reconstructed from the repos (chartmetric-flow `shared/api-registry.ts`,
+chartmetric-flow `data/seed-sitemap-features.sql`, chartmetric_data_script
 `metadata/sitemap/`, admini-tool `server/external-db/sitemap.ts`). **Verify column names
 against the live schema before running any SQL** — read-only, e.g.:
 
@@ -25,7 +25,7 @@ schema `chartmetric` — never for ClickHouse.)
 
 ## FLOW track — api-registry.ts entry shapes
 
-`chartmetric-one/shared/api-registry.ts` (edit these arrays; this is the committed change):
+`chartmetric-flow/shared/api-registry.ts` (edit these arrays; this is the committed change):
 
 ```ts
 // sitemapPages[]  (add only if the feature needs a new page)
@@ -47,7 +47,7 @@ schema `chartmetric` — never for ClickHouse.)
 
 Regenerate the SQL for the PR body (committed artifact is still only `api-registry.ts`):
 ```bash
-cd chartmetric-one && npx tsx scripts/generate-sitemap-sql.ts
+cd chartmetric-flow && npx tsx scripts/generate-sitemap-sql.ts
 ```
 
 ## MAIN track — reviewable Postgres SQL
