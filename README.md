@@ -103,7 +103,7 @@ Plugins auto-update from this repo. To add or change a skill, edit `plugins/<plu
 - `slack-summary`, `session-report`, `slack-to-asana`, `asana-task`, `ship-pr`, `release-notes` need the claude.ai Slack (and Asana) connectors: claude.ai → Settings → Connectors (`ship-pr` degrades gracefully — GitHub-only steps still run without them)
 - `clickhouse-benchmark` needs `CLICKHOUSE_HOST` / `CLICKHOUSE_PORT` / `clickhouse_user` / `clickhouse_password` in your shell env
 - `cm-pr-review`, `cm-takehome-review`, `release-notes`, `multi-repo-pr`, `ship-pr`, `rag-add-endpoint`, `asana-task` need the `gh` CLI authenticated (`gh auth status`); `cm-takehome-review` also needs the take-home repos cloned under `~/code/chartmetric/`
-- `rag-add-endpoint` needs read-only DB access (local session + `devin-secrets.env`) for its feasibility checks, and chartmetric-one cloned for the `flow`-endpoint path
+- `rag-add-endpoint` needs read-only DB access (local session + `devin-secrets.env`) for its feasibility checks, and chartmetric-flow cloned for the `flow`-endpoint path
 - `reading-casper-sessions` needs a read-only `CASPER_SESSION_READ_TOKEN` in your shell env (mint one at https://casper.chartmetric.com/settings) and `curl`
 
 ## Contributing
