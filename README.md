@@ -48,7 +48,7 @@ claude plugin update cm-harness@chartmetric-tools
 | `multi-repo-pr` | One piece of work spanning several repos: one branch + one PR per repo, cross-linked |
 | `ship-pr` | Finalize session PRs end-to-end: description, assignee = creator, Slack + Asana links (auto-created if missing), reviewer suggestion, PR Preview labels, poll until the preview deploys |
 | `gh-stack` | Manage stacked branches & PRs with the `gh stack` CLI extension: build, navigate, rebase, sync, and merge a chain of dependent PRs, run non-interactively so it never hangs on a prompt |
-| `rag-add-endpoint` | Add an API endpoint to the Flow AI / Melodi RAG "sitemap" knowledge base: gate on whether a live endpoint exists (else "build the API first"), then edit chartmetric-one's `api-registry.ts` (`flow`) or emit reviewable Postgres SQL (`main`) + a PR, with the activation timeline |
+| `rag-add-endpoint` | Add an API endpoint to the Flow AI / Melodi RAG "sitemap" knowledge base: gate on whether a live endpoint exists (else "build the API first"), then edit chartmetric-flow's `api-registry.ts` (`flow`) or emit reviewable Postgres SQL (`main`) + a PR, with the activation timeline |
 | `explain-code` | Explain code with an ASCII diagram, a step-by-step walkthrough, a gotcha, and a suggested improvement |
 
 Invoked as `/cm-skills:<skill>`, e.g. `/cm-skills:cm-pr-review`.
