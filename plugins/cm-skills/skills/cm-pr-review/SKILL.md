@@ -1,6 +1,6 @@
 ---
 name: cm-pr-review
-description: Reviews every open PR that GitHub thinks the user should review. Discovers them via `gh search prs --review-requested=@me`, loads each PR's repo conventions (AGENTS.md + .agents/skills, else CLAUDE.md + .claude/skills) read-only, writes a markdown review per PR, then asks per-PR whether to post. Reviews are always submitted as the `chartmetric-claude` GitHub App via the Maestro MCP `submit_pr_review` tool — never the reviewer's personal account. Triggers - /cm-pr-review, "review my PRs", "what do I need to review".
+description: Reviews every open PR that GitHub thinks the user should review. Discovers them via `gh search prs --review-requested=@me`, loads each PR's repo conventions (AGENTS.md + .agents/skills, else CLAUDE.md + .claude/skills) read-only, writes a markdown review per PR, then asks per-PR whether to post. Pass a PR URL or `owner/repo#N` to review just that PR. Reviews are always submitted as the `chartmetric-claude` GitHub App via the Maestro MCP `submit_pr_review` tool — never the reviewer's personal account. Triggers - /cm-pr-review, "review my PRs", "what do I need to review".
 author: hyosik@chartmetric.com
 ---
 
@@ -17,6 +17,10 @@ Every review this skill posts — **approve, request-changes, or comment** — i
 - **Reads** (discovery, `gh pr view`, `gh pr diff`, loading repo conventions) run as the user via `gh` — read-only, fine.
 - **Writes** (posting the review) go **exclusively** through the Maestro MCP `submit_pr_review` tool, which authenticates as the App via an installation token.
 - **Never** post a review with `gh pr review` — that attributes it to whoever is logged into `gh` locally (e.g. the review on chartmetric-api#7035 posted as a personal account instead of the bot). If Maestro can't post, the skill refuses and skips rather than falling back to `gh`. See [Step 4](#step-4--post-approve-or-skip-after-all-drafts-are-shown).
+
+## Single-PR mode
+
+If the args name a PR — a URL like `https://github.com/<owner>/<repo>/pull/<num>` (any trailing `/files`, `/changes`, etc. ignored) or `<owner>/<repo>#<num>` — skip Steps 1–2 and review only that PR. Still resolve `GH_LOGIN` (Step 1's first command) for the attribution block, then continue at Step 3. The PR doesn't need to have requested you, and the org filter doesn't apply.
 
 ## Step 1 — Discover PRs
 
@@ -283,3 +287,7 @@ Discovers 5 PRs, prints the list, asks. User types `y`, sees 5 drafts back-to-ba
 > `/cm-pr-review` (3 PRs, user types `1,3`)
 
 → Reviews #1 and #3 only. Skips #2 outright (no draft generated, no API call for it).
+
+> `/cm-pr-review https://github.com/chartmetric/chartmetric-api/pull/7732/changes`
+
+→ Single-PR mode: no discovery, no list. One draft for chartmetric-api#7732, then the Step 4 prompt.
