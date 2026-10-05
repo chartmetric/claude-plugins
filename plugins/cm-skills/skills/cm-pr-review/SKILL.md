@@ -141,9 +141,11 @@ If the API itself errors (auth, rate limit), abort the PR with `_skipped: could 
 Build the system prompt in this order (later sections override earlier ones on conflict):
 
 1. Default reviewer baseline (below).
-2. Repo `AGENTS.md` (or `CLAUDE.md` in the fallback case).
-3. Repo skill files from 3b (sorted by file path for determinism).
-4. _(future)_ User personal style at `~/.claude/cm-pr-review-style.md`. **Not loaded in v1.** Check the path exists and, if so, mention `_personal style file detected but not yet supported in this skill version_` once at the start of the run.
+2. Reviewer's personal rules — the first that exists of `~/.claude/cm-pr-review-style.md`, `~/.claude/AGENTS.md`, `~/.claude/CLAUDE.md`. Load it once per run. Its coding and writing rules (comments, style, conventions) count as review criteria, not just tone — flag violations like any repo rule.
+3. Repo `AGENTS.md` (or `CLAUDE.md` in the fallback case).
+4. Repo skill files from 3b (sorted by file path for determinism).
+
+The repo wins over personal rules on conflict.
 
 **Default reviewer baseline:**
 
@@ -174,7 +176,7 @@ Print the review to the terminal with a clear separator:
 ═══════════════════════════════════════════════════════
 PR #<num> — <title>  (<repo>)
 <URL>
-_context: <AGENTS.md|CLAUDE.md> + <loaded>/<found> skill files (<local|api>)_
+_context: <AGENTS.md|CLAUDE.md> + <loaded>/<found> skill files (<local|api>); personal: <file name|none>_
 Recommended verdict: <approve | request changes | comment> — <one-line reason>
 ═══════════════════════════════════════════════════════
 
