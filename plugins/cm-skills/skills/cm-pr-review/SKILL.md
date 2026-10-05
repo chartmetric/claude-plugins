@@ -1,6 +1,6 @@
 ---
 name: cm-pr-review
-description: Reviews every open PR that GitHub thinks the user should review. Discovers them via `gh search prs --review-requested=@me`, loads each PR's repo conventions (CLAUDE.md + .claude/skills) read-only, writes a markdown review per PR, then asks per-PR whether to post. Reviews are always submitted as the `chartmetric-claude` GitHub App via the Maestro MCP `submit_pr_review` tool — never the reviewer's personal account. Triggers - /cm-pr-review, "review my PRs", "what do I need to review".
+description: Reviews every open PR that GitHub thinks the user should review. Discovers them via `gh search prs --review-requested=@me`, loads each PR's repo conventions (AGENTS.md + .agents/skills, else CLAUDE.md + .claude/skills) read-only, writes a markdown review per PR, then asks per-PR whether to post. Pass a PR URL or `owner/repo#N` to review just that PR. Reviews are always submitted as the `chartmetric-claude` GitHub App via the Maestro MCP `submit_pr_review` tool — never the reviewer's personal account. Triggers - /cm-pr-review, "review my PRs", "what do I need to review".
 author: hyosik@chartmetric.com
 ---
 
@@ -17,6 +17,10 @@ Every review this skill posts — **approve, request-changes, or comment** — i
 - **Reads** (discovery, `gh pr view`, `gh pr diff`, loading repo conventions) run as the user via `gh` — read-only, fine.
 - **Writes** (posting the review) go **exclusively** through the Maestro MCP `submit_pr_review` tool, which authenticates as the App via an installation token.
 - **Never** post a review with `gh pr review` — that attributes it to whoever is logged into `gh` locally (e.g. the review on chartmetric-api#7035 posted as a personal account instead of the bot). If Maestro can't post, the skill refuses and skips rather than falling back to `gh`. See [Step 4](#step-4--post-approve-or-skip-after-all-drafts-are-shown).
+
+## Single-PR mode
+
+If the args name a PR — a URL like `https://github.com/<owner>/<repo>/pull/<num>` (any trailing `/files`, `/changes`, etc. ignored) or `<owner>/<repo>#<num>` — skip Steps 1–2 and review only that PR. Still resolve `GH_LOGIN` (Step 1's first command) for the attribution block, then continue at Step 3. The PR doesn't need to have requested you, and the org filter doesn't apply.
 
 ## Step 1 — Discover PRs
 
@@ -109,38 +113,39 @@ The skill must always have repo context before reviewing. Never generate a revie
 - No writes to any file inside the repo.
 - No `cd` that persists past the read.
 
-Two paths in priority order:
+**Which files.** Agent-neutral docs first, Claude-specific docs only as a fallback:
 
-1. **Local clone** at `~/code/chartmetric/<repo_name>` (where `<repo_name>` is the repo's short name, e.g. `chartmetric-api`):
-   - If the directory exists, read these files as-is from the working tree:
-     - `<path>/CLAUDE.md`
-     - every `*.md` under `<path>/.claude/skills/` (recursive)
-   - Note that the local copy may not match the PR's base commit. State this in the review header: `_context loaded from local copy of <repo>_`.
+1. **`AGENTS.md` exists** → load it plus every `*.md` under `.agents/skills/` (recursive, all depths). Don't also load `CLAUDE.md` / `.claude/skills` — in repos that have both, they're a pointer (`@AGENTS.md`) and a symlink to the same files.
+2. **No `AGENTS.md`** → load `CLAUDE.md` plus every `*.md` under `.claude/skills/` (recursive, all depths).
+3. **Neither** → warn `_no repo conventions found — falling back to default review prompt_` and continue. This is the only case where you may review without repo context.
 
-2. **GitHub API fallback** (when the local clone is missing):
-   - Fetch `CLAUDE.md`:
-     ```bash
-     gh api repos/<owner>/<repo>/contents/CLAUDE.md --jq '.content' | base64 -d
-     ```
-   - List the skills directory:
-     ```bash
-     gh api repos/<owner>/<repo>/contents/.claude/skills 2>/dev/null
-     ```
-     For each entry of `type: "file"` ending in `.md`, fetch via the `download_url` (no base64 step). For `type: "dir"`, recurse one level.
-   - Header in the review: `_context fetched from origin via gh api_`.
+**Read every file in the set, not just the index `SKILL.md`s** — rule files under `references/` are where the actual conventions live.
 
-If both paths fail (e.g. files don't exist in the repo), warn `_no repo conventions found — falling back to default review prompt_` and continue. This is the only case where you may review without repo context, and only because there is no context to load.
+**Where from**, in priority order:
 
-If a 404 from the API happens for `CLAUDE.md` but `.claude/skills` exists, use whatever you find. If the API itself errors (auth, rate limit), abort the PR with `_skipped: could not load repo context_` and continue to the next PR — do **not** fall through to diff-only review.
+1. **Local clone** at `~/code/chartmetric/<repo_name>` (e.g. `chartmetric-api`): read the files as-is from the working tree. It may not match the PR's base commit; say so in the header.
+2. **GitHub API** (no local clone): list the tree once at the PR's base branch, then fetch each file raw.
+   ```bash
+   gh api "repos/<owner>/<repo>/git/trees/<baseRefName>?recursive=1" \
+     --jq '.tree[] | select(.type == "blob") | .path' | grep -E '^(AGENTS\.md|CLAUDE\.md|\.agents/skills/.*\.md|\.claude/skills/.*\.md)$'
+   gh api "repos/<owner>/<repo>/contents/<path>?ref=<baseRefName>" -H 'Accept: application/vnd.github.raw'
+   ```
+   Pick the file set from the listing using the rules above. If the tree response has `"truncated": true`, list `.agents/skills` (or `.claude/skills`) with the contents API instead, recursing into every `dir`. Don't list `.claude/skills` via the contents API — when it's a symlink the API returns a link, not a directory.
+
+If the API itself errors (auth, rate limit), abort the PR with `_skipped: could not load repo context_` and continue to the next PR — do **not** fall through to diff-only review.
+
+**Record what was loaded** for the 3e header: the source (`AGENTS.md` or `CLAUDE.md`), the number of skill files loaded vs. found, and `local` or `api`. Loaded must equal found; if you skipped any, go back and read them.
 
 ### 3c. Compose the review
 
 Build the system prompt in this order (later sections override earlier ones on conflict):
 
 1. Default reviewer baseline (below).
-2. Repo `CLAUDE.md`.
-3. Repo `.claude/skills/*.md` (sorted by file path for determinism).
-4. _(future)_ User personal style at `~/.claude/cm-pr-review-style.md`. **Not loaded in v1.** Check the path exists and, if so, mention `_personal style file detected but not yet supported in this skill version_` once at the start of the run.
+2. Reviewer's personal rules — the first that exists of `~/.claude/cm-pr-review-style.md`, `~/.claude/AGENTS.md`, `~/.claude/CLAUDE.md`. Load it once per run. Its coding and writing rules (comments, style, conventions) count as review criteria, not just tone — flag violations like any repo rule.
+3. Repo `AGENTS.md` (or `CLAUDE.md` in the fallback case).
+4. Repo skill files from 3b (sorted by file path for determinism).
+
+The repo wins over personal rules on conflict.
 
 **Default reviewer baseline:**
 
@@ -171,7 +176,7 @@ Print the review to the terminal with a clear separator:
 ═══════════════════════════════════════════════════════
 PR #<num> — <title>  (<repo>)
 <URL>
-_context loaded from <local|api>_
+_context: <AGENTS.md|CLAUDE.md> + <loaded>/<found> skill files (<local|api>); personal: <file name|none>_
 Recommended verdict: <approve | request changes | comment> — <one-line reason>
 ═══════════════════════════════════════════════════════
 
@@ -284,3 +289,7 @@ Discovers 5 PRs, prints the list, asks. User types `y`, sees 5 drafts back-to-ba
 > `/cm-pr-review` (3 PRs, user types `1,3`)
 
 → Reviews #1 and #3 only. Skips #2 outright (no draft generated, no API call for it).
+
+> `/cm-pr-review https://github.com/chartmetric/chartmetric-api/pull/7732/changes`
+
+→ Single-PR mode: no discovery, no list. One draft for chartmetric-api#7732, then the Step 4 prompt.
