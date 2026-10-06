@@ -72,7 +72,7 @@ Resolve in this order and stop at the first hit:
    | `chartmetric-native-mobile-app` | `MOBILE:` |
    | `chartmetric_data_script`, `data_infra`, `data_utils`, `chartmetric-data-ssr` | `DE:` |
    | `chartmetric-flow` | `FLOW:` |
-   | `melodi-worker`, `kevin-slack-bot` | `AI:` |
+   | `melodi-worker`, `casper` | `AI:` |
 
 4. **Anything else** (new repo, no repo, unreadable scope) → `PE:`.
 

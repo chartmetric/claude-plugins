@@ -71,7 +71,7 @@ Invoked as `/cm-comms:<skill>`, e.g. `/cm-comms:slack-summary`.
 | Skill | What it does |
 | --- | --- |
 | `reading-casper-sessions` | Read a Casper agent session — its transcript and trace — via the session read API (`lean` / `full` / `nodes` / `export` views) to inspect, analyze, or diagnose behavior |
-| `replit-env` | Reach a repo's Replit workspace (cm-workspace or the kevin repl) over SSH to run commands there, sync its git checkout with GitHub, or unstick a Replit↔GitHub sync — with the `ssh -n` gotcha, host-rotation recovery, per-repl auth (bundle transport vs askpass shim), the kevin auto-commit watcher, and cm-workspace's prod side effects |
+| `replit-env` | Generic rules for reaching any Replit workspace over SSH to run commands there, sync its git checkout with GitHub, or unstick a Replit↔GitHub sync — pre-flight checks (prod-shared creds, `GITHUB_TOKEN`, auto-commit watcher), the `ssh -n` gotcha, host-rotation recovery, and the askpass-shim and bundle transports. No Chartmetric repo runs on Replit today |
 
 Invoked as `/cm-ai:<skill>`, e.g. `/cm-ai:reading-casper-sessions`.
 
