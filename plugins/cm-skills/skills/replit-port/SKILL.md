@@ -145,7 +145,7 @@ without rewriting the glossary.
 - **`ds-notebook`** is upstream of this one. The notebook it produces is what gets
   ported; its §1 config and §7 validation are this skill's two main inputs.
 - **`cm-ai:replit-env`** is a different job: reaching an *existing* Replit workspace
-  (cm-workspace) over SSH. It does not overlap with porting a notebook.
+  over SSH. It does not overlap with porting a notebook.
 
 ## Chartmetric specifics
 
