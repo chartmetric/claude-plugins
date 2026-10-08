@@ -192,9 +192,9 @@ claude plugin install cm-skills@chartmetric-tools
 It uses the Asana and Slack MCP connectors to read tickets and threads
 from URLs — without them, the URL entry points degrade to free-text
 intake. It pairs with PR-creation and Asana-task skills when installed
-(`ship-pr` from this plugin, `slack-to-asana` or `asana-task` from
-cm-comms); without them the run still completes and
-does those hand-offs via the MCP tools or manually.
+(`ship-pr` from this plugin, `asana-task` from cm-comms); without them
+the run still completes and does those hand-offs via the MCP tools or
+manually.
 
 ## FAQ
 

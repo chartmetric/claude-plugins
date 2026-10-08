@@ -1,6 +1,6 @@
 ---
 name: ship-pr
-description: Finalize this session's finished work into fully-dressed PRs - create/collect the PRs, write a proper description, set the assignee to the PR creator, link the related Slack thread (or post a session report to #claude-kanban and use that), link the Asana task (or create one via slack-to-asana), suggest reviewers, attach PR Preview labels, then poll until the preview pool is deployed and report the preview URLs back into the session. Use when the coding work in a session is done and the user says "ship this", "ship the PRs", "finalize the PRs", "PR 마무리해줘", "PR 올려줘 (with previews)".
+description: Finalize this session's finished work into fully-dressed PRs - create/collect the PRs, write a proper description, set the assignee to the PR creator, link the related Slack thread (or post a session report to #claude-kanban and use that), link the Asana task (or create one via asana-task), suggest reviewers, attach PR Preview labels, then poll until the preview pool is deployed and report the preview URLs back into the session. Use when the coding work in a session is done and the user says "ship this", "ship the PRs", "finalize the PRs", "PR 마무리해줘", "PR 올려줘 (with previews)".
 ---
 
 # ship-pr — finalize session PRs end-to-end
@@ -77,7 +77,7 @@ Priority order:
 Priority order:
 
 1. An Asana task already linked in the session/thread → use it.
-2. Otherwise, run the `slack-to-asana` skill with the Slack thread URL from step 4. It creates the task on Unified CM Tasks, fills custom fields, and replies in the thread. Confirm assignee/engineer with the user if not obvious (default both to the current user for self-driven session work).
+2. Otherwise, run the `asana-task` skill with the Slack thread URL from step 4, and tell it to skip its own PR-body patch (the injection below covers it). It creates the task on Unified CM Tasks, fills custom fields, and drafts a reply in the thread for the user to send. Confirm assignee/engineer with the user if not obvious (default both to the current user for self-driven session work).
 
 Then inject into **every** PR body's `### Notes` section (REST PATCH, preserve everything else):
 

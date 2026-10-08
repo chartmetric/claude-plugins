@@ -1,6 +1,6 @@
 ---
 name: asana-task
-description: Create a task on the Chartmetric "Unified CM Tasks" Asana board. Auto-prefixes the title (BE:/FE:/MCP:/PE:/…) from the repo or task scope, sets the matching Team (default Product Engineering), defaults assignee/Engineer/Planner/follower to the current user, and links a detected GitHub PR via the PR body so Asana's native Github PR section fills. Accepts a Slack URL. Triggers - /asana-task, "create asana task", "asana task on unified board", "make CM task". Override with team=<TeamName> or prefix=<TOKEN> in args.
+description: Create task(s) on the Chartmetric "Unified CM Tasks" Asana board from the session, a PR, free text, or a Slack thread. Auto-prefixes the title (BE:/FE:/MCP:/PE:/…) from the repo or task scope, sets the matching Team (default Product Engineering), defaults assignee/Engineer/Planner/follower to the current user, and links a detected GitHub PR via the PR body so Asana's native Github PR section fills. Given a Slack URL, reads the thread, can split it into N tasks, and drafts a reply in the thread with the task link(s). Triggers - /asana-task, "create asana task", "asana task from this slack thread", "asana task on unified board", "make CM task". Override with team=<TeamName>, prefix=<TOKEN>, assignee=<Name>, or engineer=<Name> in args.
 ---
 
 # Create Chartmetric Unified CM Task
@@ -109,13 +109,22 @@ server-side pagination (api + web)` is right as written.
 
 ## Inputs to extract from the user's message / args
 
-1. **Task title** — required. If not given, ask once. Prefix it per the rules above.
-2. **Slack URL** — optional. Detect `https://*.slack.com/...` URLs in the message.
+1. **Task title** — required. If not given and no Slack thread to derive it from, ask once.
+   Prefix it per the rules above.
+2. **Slack URL** — optional. Detect `https://*.slack.com/...` URLs in the message. See
+   "Reading a Slack thread" below.
 3. **GitHub PR URL** — optional. Detect `https://github.com/<owner>/<repo>/pull/<N>` in the
    message or session. See "Linking a PR" below.
 4. **Team override** — optional. `team=<Name>` (case-insensitive).
 5. **Prefix override** — optional. `prefix=<TOKEN>` (case-insensitive).
-6. **Description / notes** — **always populate**. If the user supplied explicit description
+6. **Assignee / Engineer override** — optional. `assignee=<Name>` / `engineer=<Name>`, or
+   plain phrasing ("assignee Jay, engineer Akshay"). Resolve each name with
+   `mcp__claude_ai_Asana__search_objects` (`resource_type: "user"`); if a name matches
+   several users or none, ask. Planner and follower stay `me`.
+7. **Task count** — default one. "Create N tasks" splits the thread or context by topic,
+   usually one task per PR or distinct issue. If the work spans api + web repos and the user
+   asked for separate tasks, give each its own prefix and Team.
+8. **Description / notes** — **always populate**. If the user supplied explicit description
    text, use it verbatim. Otherwise synthesize from session context (do NOT skip this step):
    - Why the task exists (1–2 sentences pulled from the current conversation, Slack thread, or PR being referenced).
    - Concrete scope / what "done" looks like, if discernible from context.
@@ -123,17 +132,29 @@ server-side pagination (api + web)` is right as written.
    - If no Slack URL, no PR, and no clear conversation context exists, ask the user once for a
      1–2 sentence description before creating. Do not create with empty notes.
 
+## Reading a Slack thread
+
+URL format: `https://chartmetric.slack.com/archives/<CHANNEL_ID>/p<TS_NO_DOT>[?thread_ts=<PARENT_TS>]`
+
+- `channel_id` = the segment after `/archives/`.
+- Parent ts = the `thread_ts` query param when present (the `p…` segment is then a reply).
+  Otherwise convert `p…` by inserting a `.` before the last 6 digits:
+  `p1776461959149649` → `1776461959.149649`.
+
+Read the whole thread with `slack_read_thread` (`channel_id` + parent ts) — replies usually
+carry the decision, fix, and PR links. Use it for the title, `html_notes`, and any PR to link.
+
 ## How to create
 
 Call `mcp__claude_ai_Asana__create_tasks` with `default_project: "1213445772342530"` and one
-task object:
+task object per task (several tasks go in the same call):
 
 - `name`: `<PREFIX>: <title>`
-- `assignee`: `me`
+- `assignee`: `me`, or the resolved `assignee=` GID
 - `followers`: `me`
 - `custom_fields`: **JSON string** with
   - `1207508719775201`: Team enum GID (from prefix, or `team=` override)
-  - `1213443514830840`: `me` (Engineer)
+  - `1213443514830840`: `me`, or the resolved `engineer=` GID (Engineer)
   - `1206124268189011`: `me` (Planner)
   - `1206132751421626`: Slack URL string (omit key if no URL)
 - `html_notes`: **required** — wrap in `<body>...</body>`. **Allowed tags**: `body, strong, em, u, s, code, ol, ul, li, a, blockquote, pre, h1, h2, hr/, img`. **Do not use `<br/>` or `<p>`** — Asana rejects those. Separate paragraphs with `<h2>` headings or `<ul>`/`<ol>` lists instead of blank lines.
@@ -183,6 +204,7 @@ nothing to do here. Only when the **PR already exists** does it need patching:
 # parse owner/repo/N from the PR URL
 gh api repos/<owner>/<repo>/pulls/<N> -q .body > /tmp/.../body.md   # scratchpad, not the repo
 # append:  \n\n**Asana**: <task permalink_url>
+#          \n**Slack**: <slack thread URL>   # only if a Slack URL was given and isn't already in the body
 gh api repos/<owner>/<repo>/pulls/<N> -X PATCH -F body=@/tmp/.../body.md
 ```
 
@@ -198,7 +220,21 @@ gh api repos/<owner>/<repo>/pulls/<N> -X PATCH -F body=@/tmp/.../body.md
   patching, tell the user the section needs a manual "Add GitHub pull request" in Asana.
 - **Exactly one `app.asana.com` URL in the PR body.** The integration attaches the PR to every
   task URL it finds, so listing follow-up tasks under "Relevant Links → Other" silently links
-  the PR to work it does not implement.
+  the PR to work it does not implement. With N tasks, each PR gets only the task it implements.
+
+## Replying in the Slack thread
+
+Only when a Slack URL was given. After the task(s) exist, create a **draft** reply with
+`mcp__claude_ai_Slack__slack_send_message_draft` (`channel_id` + parent ts as `thread_ts`) —
+never `slack_send_message`; the user reviews and sends it.
+
+```
+Created Asana task(s) on Unified CM Tasks (assignee: <Name>, engineer: <Name>):
+• <Short title>: <permalink_url>
+```
+
+Use `permalink_url` from the `create_tasks` response, not a hand-built URL. If the draft fails
+(e.g. `draft_already_exists`), report it and include the message text so the user can paste it.
 
 ## Output
 
@@ -206,6 +242,7 @@ After creation, report:
 - Task title (linked to `permalink_url`)
 - Confirmed fields: Assignee / Engineer / Planner, Team, Slack URL
 - Whether the PR body was patched, skipped (already linked — name the task), or failed
+- Slack: whether the thread reply draft was created (with `channel_link`), or skipped/failed
 
 Keep the report to ~3-5 lines. The user can see the task in Asana.
 
@@ -215,7 +252,13 @@ Keep the report to ~3-5 lines. The user can see the task in Asana.
 
 → cwd is `chartmetric-api` → title "BE: Migrate similar artists to CH", Team Backend. Slack URL
 set. All human fields = me. `html_notes` synthesized from the linked thread (read it via
-`slack_read_thread` if context isn't already in session).
+`slack_read_thread` if context isn't already in session). Thread reply drafted with the task link.
+
+> `/asana-task create 2 tasks from https://chartmetric.slack.com/archives/C0AJ1LU8ETT/p1776806127834209?thread_ts=1776806100.000100 assignee Jay`
+
+→ Parent ts `1776806100.000100` from `thread_ts`. Thread split into two tasks (one per PR),
+both in one `create_tasks` call, assignee = Jay's GID from `search_objects`, Engineer/Planner =
+me. Each existing PR body gets only its own task URL. One thread reply draft lists both tasks.
 
 > `/asana-task Fix login spinner flicker` (cwd `chartmetric-web-app`)
 
