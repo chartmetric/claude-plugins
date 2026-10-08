@@ -150,13 +150,15 @@ carry the decision, fix, and PR links. Use it for the title, `html_notes`, and a
 ## Reading a GitHub issue
 
 ```bash
-gh issue view <N> --repo <owner>/<repo> --json title,body,comments,labels,url
+gh issue view <N> --repo <owner>/<repo> --json title,body,comments,labels,url,assignees
 ```
 
 - Use the title, body, and comments for the task title and `html_notes`, rewritten per "Title
   style" — the issue title is not the task title verbatim.
 - The issue's repo picks the prefix (step 3 of "Picking the prefix").
 - Link the issue under `<h2>Links</h2>` with a descriptive label.
+- If the issue has an assignee and no `assignee=` was given, ask whether to use them (looked
+  up by name in Asana) or `me` for assignee/Engineer.
 - Read-only: do not comment on, label, or close the issue.
 
 ## How to create
