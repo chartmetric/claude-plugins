@@ -1,6 +1,6 @@
 ---
 name: asana-task
-description: Create task(s) on the Chartmetric "Unified CM Tasks" Asana board from the session, a PR, free text, or a Slack thread. Auto-prefixes the title (BE:/FE:/MCP:/PE:/…) from the repo or task scope, sets the matching Team (default Product Engineering), defaults assignee/Engineer/Planner/follower to the current user, and links a detected GitHub PR via the PR body so Asana's native Github PR section fills. Given a Slack URL, reads the thread, can split it into N tasks, and drafts a reply in the thread with the task link(s). Triggers - /asana-task, "create asana task", "asana task from this slack thread", "asana task on unified board", "make CM task". Override with team=<TeamName>, prefix=<TOKEN>, assignee=<Name>, or engineer=<Name> in args.
+description: Create task(s) on the Chartmetric "Unified CM Tasks" Asana board from the session, a PR, free text, a Slack thread, or a GitHub issue. Auto-prefixes the title (BE:/FE:/MCP:/PE:/…) from the repo or task scope, sets the matching Team (default Product Engineering), defaults assignee/Engineer/Planner/follower to the current user, and links a detected GitHub PR via the PR body so Asana's native Github PR section fills. Given a Slack URL, reads the thread, can split it into N tasks, and drafts a reply in the thread with the task link(s). Triggers - /asana-task, "create asana task", "asana task from this slack thread", "asana task from this github issue", "asana task on unified board", "make CM task". Override with team=<TeamName>, prefix=<TOKEN>, assignee=<Name>, or engineer=<Name> in args.
 ---
 
 # Create Chartmetric Unified CM Task
@@ -109,27 +109,30 @@ server-side pagination (api + web)` is right as written.
 
 ## Inputs to extract from the user's message / args
 
-1. **Task title** — required. If not given and no Slack thread to derive it from, ask once.
+1. **Task title** — required. If not given and no Slack thread or GitHub issue to derive it
+   from, ask once.
    Prefix it per the rules above.
 2. **Slack URL** — optional. Detect `https://*.slack.com/...` URLs in the message. See
    "Reading a Slack thread" below.
 3. **GitHub PR URL** — optional. Detect `https://github.com/<owner>/<repo>/pull/<N>` in the
    message or session. See "Linking a PR" below.
-4. **Team override** — optional. `team=<Name>` (case-insensitive).
-5. **Prefix override** — optional. `prefix=<TOKEN>` (case-insensitive).
-6. **Assignee / Engineer override** — optional. `assignee=<Name>` / `engineer=<Name>`, or
+4. **GitHub issue URL** — optional. Detect `https://github.com/<owner>/<repo>/issues/<N>`. See
+   "Reading a GitHub issue" below.
+5. **Team override** — optional. `team=<Name>` (case-insensitive).
+6. **Prefix override** — optional. `prefix=<TOKEN>` (case-insensitive).
+7. **Assignee / Engineer override** — optional. `assignee=<Name>` / `engineer=<Name>`, or
    plain phrasing ("assignee Jay, engineer Akshay"). Resolve each name with
    `mcp__claude_ai_Asana__search_objects` (`resource_type: "user"`); if a name matches
    several users or none, ask. Planner and follower stay `me`.
-7. **Task count** — default one. "Create N tasks" splits the thread or context by topic,
+8. **Task count** — default one. "Create N tasks" splits the thread or context by topic,
    usually one task per PR or distinct issue. If the work spans api + web repos and the user
    asked for separate tasks, give each its own prefix and Team.
-8. **Description / notes** — **always populate**. If the user supplied explicit description
+9. **Description / notes** — **always populate**. If the user supplied explicit description
    text, use it verbatim. Otherwise synthesize from session context (do NOT skip this step):
    - Why the task exists (1–2 sentences pulled from the current conversation, Slack thread, or PR being referenced).
    - Concrete scope / what "done" looks like, if discernible from context.
    - Relevant links: PR URLs, Slack thread URL, related Asana tasks, file paths with line numbers.
-   - If no Slack URL, no PR, and no clear conversation context exists, ask the user once for a
+   - If no Slack URL, no PR, no issue, and no clear conversation context exists, ask the user once for a
      1–2 sentence description before creating. Do not create with empty notes.
 
 ## Reading a Slack thread
@@ -143,6 +146,18 @@ URL format: `https://chartmetric.slack.com/archives/<CHANNEL_ID>/p<TS_NO_DOT>[?t
 
 Read the whole thread with `slack_read_thread` (`channel_id` + parent ts) — replies usually
 carry the decision, fix, and PR links. Use it for the title, `html_notes`, and any PR to link.
+
+## Reading a GitHub issue
+
+```bash
+gh issue view <N> --repo <owner>/<repo> --json title,body,comments,labels,url
+```
+
+- Use the title, body, and comments for the task title and `html_notes`, rewritten per "Title
+  style" — the issue title is not the task title verbatim.
+- The issue's repo picks the prefix (step 3 of "Picking the prefix").
+- Link the issue under `<h2>Links</h2>` with a descriptive label.
+- Read-only: do not comment on, label, or close the issue.
 
 ## How to create
 
@@ -283,3 +298,9 @@ manual attach.
 > `/asana-task team=Onesheet prefix=PE Ship onesheet export v2`
 
 → "PE: Ship onesheet export v2", Team Onesheet (override beats the prefix's implied team).
+
+> `/asana-task https://github.com/chartmetric/chartmetric-api/issues/1234`
+
+→ Reads the issue with `gh issue view`; repo `chartmetric-api` → `BE:`, Team Backend. Title
+rewritten from the issue in task language; `html_notes` from body + comments with the issue
+linked under Links. The issue itself is not touched.

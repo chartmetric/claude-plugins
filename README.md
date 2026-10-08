@@ -59,7 +59,7 @@ Invoked as `/cm-skills:<skill>`, e.g. `/cm-skills:cm-pr-review`.
 | --- | --- |
 | `slack-summary` | Summarize a Slack thread from its URL |
 | `session-report` | Post a full-context work report (problem / fix / current state / links) to a Slack channel |
-| `asana-task` | File Asana task(s) on Unified CM Tasks from the session, a PR, free text, or a Slack thread — infers the title prefix (`BE:`/`FE:`/`PE:`/…) and Team from the repo, defaults Engineer/Planner/follower to you (assignee/engineer overridable), patches an existing PR body to link back, drafts a reply in the Slack thread |
+| `asana-task` | File Asana task(s) on Unified CM Tasks from the session, a PR, free text, a Slack thread, or a GitHub issue — infers the title prefix (`BE:`/`FE:`/`PE:`/…) and Team from the repo, defaults Engineer/Planner/follower to you (assignee/engineer overridable), patches an existing PR body to link back, drafts a reply in the Slack thread |
 | `release-notes` | Generate (and optionally post) the "Chartmetric Production Release" `#product-updates` message from a deploy message / PR / release tag, resolving Asana tasks and combining FE+BE release waves |
 | `de-monthly-update` | Compile the Data Engineering monthly all-hands update: sweep GitHub and Slack for what each engineer shipped, verify shipped-vs-in-flight, assemble themed sections with per-person attribution |
 
