@@ -26,9 +26,10 @@ Every `gh stack` command runs non-interactively — a command that would prompt 
 | `view` | `--json` (else launches a TUI) |
 | `merge` | `--yes` (`gh pr merge` does not work on stacks) |
 
-Two environment constraints round this out:
+Three environment constraints round this out:
 
-- **Multiple remotes.** With more than one remote, set `git config remote.pushDefault origin`, or pass `--remote <name>` to the commands that accept it (`push`, `submit`, `sync`, `rebase`, `link`). `checkout`, `modify`, and `trunk` have no `--remote` flag and rely on `remote.pushDefault`; with multiple remotes and no default they exit with an error.
+- **Multiple remotes.** With more than one remote, set `git config remote.pushDefault origin`, or pass `--remote <name>` to the commands that accept it (`push`, `submit`, `sync`, `rebase`, `link`). `checkout`, `modify`, and `trunk` have no `--remote` flag and rely on `remote.pushDefault`; with multiple remotes and no default they exit with an error. `remote.pushDefault` only picks where branches are pushed. GitHub API calls (`link`, `submit`, `checkout <pr>`, `merge`) pick the repo separately, from `gh repo set-default` — set it too (`gh repo set-default <owner>/<repo>`). Versions before v0.2.1 ignore that setting and prefer a remote named `upstream`, so in a fork-style clone they target the wrong repo.
+- **Branches held by other worktrees.** Git won't check out a branch that another worktree holds. `rebase`, `sync`, and `modify` handle this themselves (see [Worktrees](#worktrees)). For `checkout` and navigation (`up`/`down`/`top`/`bottom`/`trunk`), pass `--print-path` to get the owning worktree's path instead of switching, then work in that directory.
 - **`checkout` onto a conflicting local stack.** If a different local stack already tracks those branches, `checkout <pr-number>` triggers an unbypassable conflict prompt. Run `gh stack unstack --local` first (this keeps the GitHub stack intact), then retry.
 
 Branch names are used verbatim — never prefixed or transformed. `gh stack add refactor/foo` creates a branch named `refactor/foo`; slashes are kept as-is.
@@ -44,12 +45,13 @@ Everything else — `init`, `add`, `push`, navigation, `view`, `sync`, `rebase` 
 
 ## Prerequisites
 
-`gh` v2.0+, installed and authenticated. Then:
+`gh` v2.0+, installed and authenticated, and gh-stack v0.2.1+ (worktree support and correct repo resolution). Check with `gh stack --version`. Then:
 
 ```bash
-gh extension install github/gh-stack
+gh extension install github/gh-stack  # or, if installed: gh extension upgrade stack
 git config rerere.enabled true        # remember conflict resolutions (skips a prompt on init)
 git config remote.pushDefault origin  # only if multiple remotes exist
+gh repo set-default <owner>/<repo>    # only if multiple remotes exist
 ```
 
 ## Structuring a stack
@@ -153,6 +155,17 @@ gh stack rebase --continue   # repeat for any further conflicts
 gh stack rebase --abort      # or bail out — restores all branches to pre-rebase state
 ```
 
+### Worktrees
+
+Stack tracking belongs to the repository, not the directory where `init` ran: one catalog under the git common dir is shared by every worktree. Any worktree sees every stack, and removing a worktree doesn't lose tracking. `init` and `add` can adopt a branch checked out in another worktree without switching either checkout.
+
+`rebase`, `sync`, and `modify` work on stacks spread across worktrees. Each branch is rewritten in the worktree that holds it; branches no worktree holds use the one you ran the command from.
+
+- Before rewriting anything, they check every affected worktree for uncommitted changes or an unfinished git operation and stop if they find one. Commit or clean up there first.
+- A conflict is resolved in the named worktree; `--continue` and `--abort` work from any worktree.
+- gh-stack never creates, removes, or auto-stashes worktrees, and never switches another worktree to a different branch.
+- Requires Git 2.36+.
+
 ### Read stack state from `--json`
 
 ```bash
@@ -195,12 +208,11 @@ Teardown is clean only before any of the stack's PRs have landed: `unstack` leav
 | 7 | Rebase already in progress | `gh stack rebase --continue` or `--abort` |
 | 8 | Stack is locked | Another `gh stack` process holds the lock; wait and retry (times out after 5s) |
 | 9 | Stacked PRs unavailable | The repo doesn't have stacked PRs enabled — tell the user to enable them first |
-| 10 | Modify recovery required | An interrupted `gh stack modify` session; run `gh stack modify --abort` to restore |
+| 10 | Modify recovery required | An interrupted `gh stack modify` session; resolve conflicts and run `gh stack modify --continue`, or `gh stack modify --abort` to restore |
 
 ## Known limitations
 
 1. **Linear only.** No branching stacks — each branch has one parent and at most one child. Parallel workstreams use separate stacks.
 2. **No custom PR title/body at submit.** Titles and bodies are auto-generated from commit messages; edit afterward with `gh pr edit`.
-3. **Remote checkout needs a stack or PR number.** `checkout <branch>` resolves locally-tracked stacks only; pull a stack from GitHub with `gh stack checkout <stack-number|pr-number>`.
-4. **`modify` is interactive-only.** `gh stack modify` (drop, fold, insert, reorder, or rename branches in place) needs an interactive terminal, so it has no place in a non-interactive workflow — restructure with `unstack` + `init` instead (see the Restructure a stack workflow above). Its one non-interactive touchpoint is recovery: an interrupted session exits 10, cleared with `gh stack modify --abort`.
-5. **Adopting a remote-only branch clobbers it.** `init`/`add` adopt existing *local* branches only; a branch that exists just on the remote is recreated from your current checkout, and the next `submit`/`push`/`sync` force-pushes that over the real remote content — collapsing the PR diff, sometimes closing the PR. To group PRs that already exist, prefer `gh stack link --base <trunk> <pr>...` (PR numbers) — pure API, no push, so it can't clobber; a mixed stack works in one call too, existing layers by PR number and new local branches by name. Only if you must adopt an existing remote branch through `init`/`add`, materialize and verify its local tracking branch first (`git fetch origin && git branch <name> origin/<name>`, confirm the SHAs match). Detail and recovery in `references/build.md`.
+3. **`modify` is interactive-only.** `gh stack modify` (drop, fold, insert, reorder, or rename branches in place) needs an interactive terminal, so it has no place in a non-interactive workflow — restructure with `unstack` + `init` instead (see the Restructure a stack workflow above). Its non-interactive touchpoints are recovery: an interrupted session exits 10, cleared with `gh stack modify --continue` (after resolving conflicts) or `--abort`.
+4. **Adopting a remote-only branch clobbers it.** `init`/`add` adopt existing *local* branches only; a branch that exists just on the remote is recreated from your current checkout, and the next `submit`/`push`/`sync` force-pushes that over the real remote content — collapsing the PR diff, sometimes closing the PR. To group PRs that already exist, prefer `gh stack link --base <trunk> <pr>...` (PR numbers) — pure API, no push, so it can't clobber; a mixed stack works in one call too, existing layers by PR number and new local branches by name. Only if you must adopt an existing remote branch through `init`/`add`, materialize and verify its local tracking branch first (`git fetch origin && git branch <name> origin/<name>`, confirm the SHAs match). Detail and recovery in `references/build.md`.
