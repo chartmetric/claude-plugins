@@ -1,6 +1,7 @@
 ---
 name: gh-stack
 description: Manage stacked branches and pull requests with the `gh stack` GitHub CLI extension. Use when the user wants to build, navigate, rebase, sync, or merge a chain of dependent PRs — stacked diffs, incremental review layers.
+author: tyler@chartmetric.com
 ---
 # gh-stack
 
