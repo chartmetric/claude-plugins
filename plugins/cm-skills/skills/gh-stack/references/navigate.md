@@ -6,9 +6,10 @@ Flags and behavior for reading stack state and moving between branches. Non-inte
 
 ```
 gh stack view --json
+gh stack view --short   # compact one-line-per-branch text, no TUI
 ```
 
-`--json` prints stack data to stdout; without it the command launches a TUI.
+`--json` prints stack data to stdout; `--short` prints a compact list; with neither the command launches a TUI.
 
 ```json
 {
@@ -61,10 +62,12 @@ gh stack bottom     # first non-merged branch above trunk
 gh stack trunk      # the trunk branch (e.g. main)
 ```
 
+If the target branch is checked out in another worktree, add `--print-path`: it prints that worktree's path instead of switching, and you work there.
+
 ## `gh stack checkout` — check out a stack
 
 ```
-gh stack checkout <stack-number | pr-number | pr-url | branch>
+gh stack checkout <stack-number | pr-number | pr-url | branch> [--print-path]
 ```
 
-Resolves a bare number as a stack number first, then a PR number, then a branch name. A stack/PR number or URL fetches from GitHub and sets up the stack locally; a branch name resolves locally-tracked stacks only (always safe non-interactively). If a local stack already tracks the target branches with a different composition, checkout triggers an unbypassable prompt — run `gh stack unstack --local` first, then retry (see the non-interactive rules in `SKILL.md`).
+Resolves a bare number as a stack number first, then a locally tracked PR number, then a PR number looked up on GitHub, then a branch name. A stack/PR number or URL fetches from GitHub and sets up the stack locally. A branch name checks locally tracked stacks first, then GitHub stacks, and pulls down the match. `--print-path` prints the worktree path that holds the target instead of switching (requires an explicit target). If a local stack already tracks the target branches with a different composition, checkout triggers an unbypassable prompt — run `gh stack unstack --local` first, then retry (see the non-interactive rules in `SKILL.md`).
