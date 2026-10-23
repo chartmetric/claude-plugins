@@ -1,9 +1,10 @@
 ---
 name: demo-presentations
 description: Use when building or reworking an artifact for executives, leadership or other non-engineers at Chartmetric, or when asked to make a technical artifact "demo-friendly", "engaging", "animated", "visual", "non-technical", "simpler" or "fit for a team demo".
+author: tyler@chartmetric.com
 ---
 
-# Exec demo artifacts
+# Demo presentations
 
 An exec artifact is visual first: the audience should get the point from the pictures with the text removed. Three things make it land: the page shows instead of tells, the detail is simplified without being faked, and motion is spent only on cause and effect. Everything on the page is real; what changes is how much of it is visible at once and in what form.
 
