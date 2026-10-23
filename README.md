@@ -50,6 +50,7 @@ claude plugin update cm-harness@chartmetric-tools
 | `gh-stack` | Manage stacked branches & PRs with the `gh stack` CLI extension: build, navigate, rebase, sync, and merge a chain of dependent PRs, run non-interactively so it never hangs on a prompt |
 | `rag-add-endpoint` | Add an API endpoint to the Flow AI / Melodi RAG "sitemap" knowledge base: gate on whether a live endpoint exists (else "build the API first"), then edit chartmetric-one's `api-registry.ts` (`flow`) or emit reviewable Postgres SQL (`main`) + a PR, with the activation timeline |
 | `explain-code` | Explain code with an ASCII diagram, a step-by-step walkthrough, a gotcha, and a suggested improvement |
+| `demo-presentations` | Design artifacts for execs, leadership and other non-engineers: visual-first pages that show one real instance of the work with cause and effect side by side on a shared timeline, technical detail simplified but one click away, and motion spent only on explaining; includes the headless checks for an animated page |
 
 Invoked as `/cm-skills:<skill>`, e.g. `/cm-skills:cm-pr-review`.
 
