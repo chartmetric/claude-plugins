@@ -1,6 +1,7 @@
 ---
 name: demo-presentations
 description: Use when building or reworking an artifact for executives, leadership or other non-engineers at Chartmetric, or when asked to make a technical artifact "demo-friendly", "engaging", "animated", "visual", "non-technical", "simpler" or "fit for a team demo".
+author: tyler@chartmetric.com
 ---
 
 # Exec demo artifacts

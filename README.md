@@ -50,7 +50,6 @@ claude plugin update cm-harness@chartmetric-tools
 | `gh-stack` | Manage stacked branches & PRs with the `gh stack` CLI extension: build, navigate, rebase, sync, and merge a chain of dependent PRs, run non-interactively so it never hangs on a prompt |
 | `rag-add-endpoint` | Add an API endpoint to the Flow AI / Melodi RAG "sitemap" knowledge base: gate on whether a live endpoint exists (else "build the API first"), then edit chartmetric-one's `api-registry.ts` (`flow`) or emit reviewable Postgres SQL (`main`) + a PR, with the activation timeline |
 | `explain-code` | Explain code with an ASCII diagram, a step-by-step walkthrough, a gotcha, and a suggested improvement |
-| `demo-presentations` | Design artifacts for execs, leadership and other non-engineers: visual-first pages that show one real instance of the work with cause and effect side by side on a shared timeline, technical detail simplified but one click away, and motion spent only on explaining; includes the headless checks for an animated page |
 
 Invoked as `/cm-skills:<skill>`, e.g. `/cm-skills:cm-pr-review`.
 
@@ -63,6 +62,7 @@ Invoked as `/cm-skills:<skill>`, e.g. `/cm-skills:cm-pr-review`.
 | `asana-task` | File Asana task(s) on Unified CM Tasks from the session, a PR, free text, a Slack thread, or a GitHub issue — infers the title prefix (`BE:`/`FE:`/`PE:`/…) and Team from the repo, defaults Engineer/Planner/follower to you (assignee/engineer overridable), patches an existing PR body to link back, drafts a reply in the Slack thread |
 | `release-notes` | Generate (and optionally post) the "Chartmetric Production Release" `#product-updates` message from a deploy message / PR / release tag, resolving Asana tasks and combining FE+BE release waves |
 | `de-monthly-update` | Compile the Data Engineering monthly all-hands update: sweep GitHub and Slack for what each engineer shipped, verify shipped-vs-in-flight, assemble themed sections with per-person attribution |
+| `demo-presentations` | Design artifacts for execs, leadership and other non-engineers: visual-first pages that show one real instance of the work with cause and effect side by side on a shared timeline, technical detail simplified but one click away, and motion spent only on explaining; includes the headless checks for an animated page |
 
 Invoked as `/cm-comms:<skill>`, e.g. `/cm-comms:slack-summary`.
 
