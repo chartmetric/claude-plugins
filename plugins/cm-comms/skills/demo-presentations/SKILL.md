@@ -1,6 +1,6 @@
 ---
 name: demo-presentations
-description: Use when building or reworking an artifact for executives, leadership or other non-engineers at Chartmetric, or when asked to make a technical artifact "demo-friendly", "engaging", "animated", "visual", "non-technical", "simpler" or "fit for a team demo".
+description: Use when building or reworking an artifact for executives, leadership or other non-engineers at Chartmetric, or when asked to make a technical artifact "demo-friendly", "engaging", "animated", "visual", "non-technical", "simpler" or "fit for a team demo". Not for design docs or handoffs an engineer will build from.
 author: tyler@chartmetric.com
 ---
 
@@ -14,8 +14,7 @@ These hold for any reader, technical or not.
 
 - **The page works without its companions.** Readers may never see the demo, the chat or the earlier draft. Open with what the thing is in terms the reader already knows, plus one real instance of it (a quoted line, a rendered panel). A coined label for the idea ("one transcript instead of two") explains nothing on its own.
 - **Each headline is proved in its own section.** A section titled with a claim shows the claim happening: real content at real timestamps or real counts, next to the old behaviour. Abstract bars or boxes with no content in them do not prove anything.
-- **Every rule or behaviour gets a real example.** When a section says how something behaves, show real instances sorted by kind. When the full set is small, show all of it, including the case that did not change. Quote text that is being removed word for word, with where it lives.
-- **Section names say what is in them.** "Edge cases and what should happen", not "The cases that will bite". No idioms, puns or teaser headings.
+- **Section names say what is in them.** "What the user sees after the change", not "The cases that will bite". No idioms, puns or teaser headings.
 - **Illustrative content is labelled where it sits.** When one panel cannot use real data, say so on that panel. A footnote elsewhere gets missed, and an unlabelled mock-up next to real output reads as real.
 
 ## Visual first
@@ -48,8 +47,7 @@ When one action changes several things, the page's centrepiece is a single stage
 - **Say each thing once.** When a pane already shows the outcome, the step beside it says "Answers" or "Panel updates" and nothing more. No caption that restates what is visible.
 - **Numbers are a list, not a dashboard.** A left-aligned label/value list of five to seven facts under the header (what ran, when, how long, how much, what it produced, what it cost). KPI cards, count-ups, sparklines and pills read as marketing and get pulled in review.
 - **Cut what the story does not need.** Internal bookkeeping (system log files, run records, mode names, flags) goes unless it carries the point, and goes when it blurs a comparison. Acceptance checklists and "where this sits" stage strips go too unless the page is about the plan; one sentence covers ordering when it matters.
-- **Compare with the old way in the same form.** When the work replaces something, show the replaced path in the identical layout directly below, then a short table of hard numbers from both. Include the rows where the new path loses; execs trust a table that has one.
-- **Pin the comparison to one moment, then to each part.** Put the old and new versions of the same real moment side by side (same question, same second into the run). Then give every component that changes its own short Today / After pair. Describe today's behaviour from the current source or the live product, never from memory.
+- **Compare with the old way in the same form.** When the work replaces something, show the same real moment (same question, same second into the run) on the replaced path in the identical layout directly below, then a short table of hard numbers from both. Include the rows where the new path loses; execs trust a table that has one. Describe the old way from the current source or the live product, never from memory.
 - **Engineering depth survives, collapsed.** The full log, every query, every call, at the bottom in a closed `<details>`. A footer says where it ran, what was sampled or rebuilt, and how.
 
 ## Motion
@@ -100,6 +98,5 @@ Headless Chrome can check layout and errors but not timing: see [verifying-motio
 | An opening that only makes sense after the demo | What it is in the reader's terms, plus one real instance |
 | A claim headline over an abstract timeline | Real content at real timestamps, beside today's behaviour |
 | Diagram boxes named after internal components | What happens, with the condition and count on each branch |
-| A rule described with no instance of it | Real examples sorted by kind, the unchanged case included |
 | A clever section name | A literal one |
 | A mock-up panel with no label | "Illustrative" on the panel itself |
