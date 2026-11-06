@@ -20,7 +20,7 @@ These are principles, not a template. Two demos about different work should not 
 
 ## Choose the form from the content
 
-Pick the centrepiece by what the work is, then build only that. A page has one centrepiece; everything else on it is an addendum to the centrepiece.
+Pick the centrepiece by what the work is, then build only that. A page has one centrepiece; everything else on it is an addendum to the centrepiece. When several rows fit, pick the one that answers the audience's first question; the others become addenda.
 
 | The work is | Centrepiece |
 |---|---|
