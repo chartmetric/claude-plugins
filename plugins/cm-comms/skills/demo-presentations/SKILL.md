@@ -8,6 +8,69 @@ author: tyler@chartmetric.com
 
 An exec artifact is visual first: the audience should get the point from the pictures with the text removed. Three things make it land: the page shows instead of tells, the detail is simplified without being faked, and motion is spent only on cause and effect. Everything on the page is real; what changes is how much of it is visible at once and in what form.
 
+These are principles, not a template. Two demos about different work should not look alike, and a page has only the parts its content calls for.
+
+## Artifact format
+
+"Demo" and "presentation" here describe the audience, not the file type. The artifact is a scrolling web page or a document, published as an ordinary page (Artifact quickstart `intent: "other"`, or `"document"` for mostly prose).
+
+- If the user asked for slides or a deck, make slides (`intent: "slides"`).
+- If the user asked for a design or prototype, make a design (`intent: "design"`).
+- Otherwise make the page. Do not start from a Slides, Design or other typed template because the request mentions a demo, a presentation or motion.
+
+## Choose the form from the content
+
+Pick the centrepiece by what the work is, then build only that. A page has one centrepiece; everything else on it is an addendum to the centrepiece.
+
+| The work is | Centrepiece |
+|---|---|
+| One action that changes several things at once (an agent run, a job writing rows) | A multi-pane stage on a shared timeline: read [stage-and-motion.md](stage-and-motion.md) |
+| A replacement for something the audience already uses | The same moment on both paths, then a numbers table |
+| A new capability with no old version | The product surface doing it once, annotated |
+| A data finding or result | One chart with the numbers on it |
+| A pipeline or data flow | One real record shown at each stage |
+| A tool people will use | A working interactive example they can try |
+| A plan, migration or rollout | A timeline of real dates and states |
+| A UI or design change | The real screens, large, with callouts |
+
+A rendered product surface (a chat, a panel, a page) appears only when the work changes what the user sees in the product. A before/after appears only when there is a real before the audience knows. Step controls appear only when the content is a sequence the presenter walks through.
+
+### Building each form
+
+- **Both paths, same moment.** The same real instance (same input, same second into the run) on each path, in the identical layout, side by side when each fits half the width and stacked otherwise. Real timestamps on each step. Under the pair, a short table of hard numbers from both, with the rows where the new path loses; execs trust a table that has one. Describe the old path from the current source or the live product, never from memory.
+- **Product surface, annotated.** The surface rendered from the product's own components and stored output, at the user's aspect ratio, once. Numbered callouts in reading order, each a verb phrase and the real value at that spot ("Flags 3 chart-days with under 200 rows"). One surface, not a gallery of states.
+- **One chart.** The finding is the chart's title, written as a sentence. The series are the groups the audience thinks in, the values are printed on the marks that carry the point, and the rest is grey. The cohort size and method sit under the chart in one line, with the query one click away. Follow the dataviz skill for the chart when it is installed.
+- **One record at each stage.** One real record's fields shown as each stage's output, arranged in flow direction, with what changed between stages highlighted. Each stage box says what it does, as a verb, and carries the count for the whole run as a number ("Picks channels not fetched in 23 h: 76,912"), not one mark per item. Stages share one height. Failures and retries are drawn where they happen, with their counts.
+- **Interactive example.** The tool's real controls with the real defaults, prefilled with a recorded run, and the recorded result already on screen when the page opens, so the first screen shows the tool having done its job. The viewer can re-run it or change an input; any input other than the recorded one shows a computed or illustrative result and says so on the panel. The recorded run's log is one click away.
+- **Timeline.** Real dates on a horizontal or vertical axis, one state per date (done, in progress, planned), today marked. Done items carry what shipped; planned items carry what will exist, not a task name.
+- **Screens with callouts.** Screens at the product's aspect ratio, large, in the order the user meets them. Each callout says what the user does and what they get. Spotify's or another vendor's screen stays as the vendor renders it. The old screens appear beside the new only when the comparison is the point.
+
+## Let the subject set the look
+
+Take the background, palette, type and shape of the page from the subject, before writing any stylesheet. Test it: if the page would look the same with a different subject, the look did not come from this one.
+
+| The subject is | The page takes |
+|---|---|
+| A product surface | The product's own background, colours, type and component shapes, so the surface looks lifted from the product |
+| A dataset or finding | A white page, one accent colour for the finding, grey for everything else, tabular numbers |
+| A pipeline, job or system | A colour per state (waiting, running, done, failed) used consistently, monospace for ids and timestamps, a wide left-to-right layout; dark only when the subject is a terminal or a log stream |
+| A flow people go through | The screens' own colours, narrow columns, one per path |
+| A plan | A single axis, muted colour for the past, saturated for what is next |
+
+The background is part of the look. A dark page is a choice the subject makes (a terminal, a log stream, a dark product UI), never a default; a finding, a plan or a set of light product screens sits on a light page.
+
+The first screen is the centrepiece with its title. A header block, a facts list or a paragraph above the first visual pushes the point below the fold.
+
+## Page frame
+
+Each of these appears only when its condition holds. Otherwise it is left out.
+
+- **A facts list under the title** (left-aligned label/value, five to seven rows) when the page is about one run or event and the audience will ask what ran, when, how long, how much, what it produced and what it cost. A finding, a set of screens or a plan puts its numbers on the visual instead.
+- **A collapsed `<details>` at the bottom** when there is technical text the audience could ask for: the full log, every query, every call, the raw data. A page with no such text has no `<details>`.
+- **A footer line** when something was sampled, replayed, rebuilt or illustrative; it says where it ran and how. Otherwise no footer.
+- **Verb titles** on steps and actions ("Writes a program", "Drops the duplicates"). A finding is titled with the finding as a sentence. A comparison is titled with the two things compared. A screen is titled with what the user does on it.
+- **A one-line caption** under a visual only when the visual needs a reader's question answered that its labels do not. When the labels carry the point, no caption.
+
 ## Writing that stands on its own
 
 These hold for any reader, technical or not.
@@ -19,80 +82,68 @@ These hold for any reader, technical or not.
 
 ## Visual first
 
-- **The visual is the content; text is its label.** Every section opens with the thing itself (the product surface, a drawing of the mechanism, a record moving, a before/after pair), and the words around it are a title, one sentence, and labels. Execs read about 5% of a text-heavy page; the drawings are what they take away.
+- **The visual is the content; text is its label.** Every section opens with the thing itself (the product surface, a drawing of the mechanism, a record moving, a chart), and the words around it are a title, one sentence, and labels. Execs read about 5% of a text-heavy page; the drawings are what they take away.
 - **Test by deleting the words.** If a section still makes its point with only its visuals and labels, it is done. If a point only exists as a paragraph, either draw it or move the paragraph to the collapsed detail.
 - **Draw the real mechanism, not a decoration.** A drawing shows what actually passes, blocks, splits or accumulates, with real counts on it. Stock illustrations, icons as filler and abstract "AI" imagery say nothing.
 - **Prefer the product's own pixels.** A rendered panel, chat or page beats a redrawn version; a stored output beats a description of it.
 - **One visual per idea.** A step gets one drawing; a comparison gets one pair; a result gets one chart. Two visuals for one idea compete.
 - **Numbers live on the visual.** Put the count on the chip, the duration on the step, the size on the row. A number next to its picture is understood; a number in a sentence is skimmed.
-- **Text that remains is short and sentence-case.** Titles are verbs. Captions are one line. Bold and bullets only where they carry structure.
-
-## Composition: cause and effect in one viewport
-
-When one action changes several things, the page's centrepiece is a single stage with adjacent panes that advance together, not a sequence of sections.
-
-- **One pane per thing that changes.** Typically the surface the audience knows (what the user sees), the mechanism (what is happening), and the state it mutates (files, rows, a table, a queue). Two panes is the minimum; four is too many.
-- **A shared timeline drives all panes.** One step changes every pane at once: the mechanism shows the step, the state pane gains or highlights a row, the surface shows what the user had at that moment. The audience sees cause in one pane and effect in the next in the same moment, without scrolling or holding anything in memory.
-- **Steps carry real timestamps**, grouped by the unit the audience thinks in (question, request, batch). The clock on each step is proof the run is recorded, and it paces the presenter.
-- **The stage fits one screen.** Fixed height, each pane scrolling inside itself. Nothing below the fold is needed to follow a step.
-- **Later sections are addenda.** A comparison (the same stage for the old way), a numbers table, the collapsed detail. They come after the stage, never instead of it.
+- **Text that remains is short and sentence-case.** Bold and bullets only where they carry structure. KPI cards, count-ups, sparklines and hero taglines read as marketing and get pulled in review.
 
 ## Simplifying for execs
 
 - **Show one real instance, not the system.** One real record, one real conversation, one real job, followed from input to what the user ended up with. An architecture diagram tells; an instance shows.
-- **Lead with the product surface.** The thing the audience already recognises (the panel, the chat, the page) is the anchor. Render it from the product's own components and stored output, scaled down to the user's aspect ratio, so it looks like the product and not a mock-up.
-- **Titles are verbs for the audience; names are for the detail layer.** A step is "Writes a program", "Drops the duplicates", "Attaches artist details". Tool names, table names, endpoint paths, job ids and file names appear only in a small exact-call strip under the step, in the state list, or in the collapsed log. Never in a heading.
+- **Lead with what the audience recognises.** When the work has a product surface (a panel, a page, a report), it is the anchor. Render it from the product's own components and stored output, scaled down to the user's aspect ratio, so it looks like the product and not a mock-up.
+- **Names are for the detail layer.** Tool names, table names, endpoint paths, job ids and file names appear only in a small exact-call strip under the step, in the state list, or in the collapsed log. Never in a heading.
 - **Plain words reach inside diagrams and tables too.** A diagram box says what happens ("Checks for internal words"), and a branch carries its condition and its count ("Nothing found: 21 of 27"). Table columns are the reader's questions ("Where does it come from?", "Is it saved?") and the cells are sentences. Internal component names ("middleware", "registry", "envelope") stay out of both.
 - **Technical text is one click away, never gone.** Code, SQL, queries and config show as four to eight plain-English lines (naming what is read and what is saved) with a toggle to the real text. Hiding it entirely invites "how do we know?"; showing it by default loses the room.
-- **Say each thing once.** When a pane already shows the outcome, the step beside it says "Answers" or "Panel updates" and nothing more. No caption that restates what is visible.
-- **Numbers are a list, not a dashboard.** A left-aligned label/value list of five to seven facts under the header (what ran, when, how long, how much, what it produced, what it cost). KPI cards, count-ups, sparklines and pills read as marketing and get pulled in review.
+- **Complex logic can be loose pseudo-code on the page.** When the point is a rule or a decision (what gets kept, what gets dropped, in what order), a few lines of loose pseudo-code in the reader's words can sit in the exec-facing part as the visual, with the real code behind the toggle. Plain words for the conditions, no identifiers, no syntax the reader would have to parse.
+- **Say each thing once.** When a visual already shows the outcome, the label beside it names the outcome and nothing more. No caption that restates what is visible.
 - **Cut what the story does not need.** Internal bookkeeping (system log files, run records, mode names, flags) goes unless it carries the point, and goes when it blurs a comparison. Acceptance checklists and "where this sits" stage strips go too unless the page is about the plan; one sentence covers ordering when it matters.
-- **Compare with the old way in the same form.** When the work replaces something, show the same real moment (same question, same second into the run) on the replaced path in the identical layout directly below, then a short table of hard numbers from both. Include the rows where the new path loses; execs trust a table that has one. Describe the old way from the current source or the live product, never from memory.
-- **Engineering depth survives, collapsed.** The full log, every query, every call, at the bottom in a closed `<details>`. A footer says where it ran, what was sampled or rebuilt, and how.
 
 ## Motion
 
-Motion is explanation. Each animation should answer "what caused what?"; if it cannot, it is decoration and comes out.
+Motion is explanation. Each animation answers "what caused what?"; if it cannot, it is decoration and comes out. A page with no sequence to show (a chart, a set of screens, a plan) has no motion and no step controls.
 
-- **Step, don't scroll.** The audience moves through the work at the presenter's pace with Back, Play and Next and a timeline of labelled steps. The page never animates on scroll-into-view.
-- **Arrows carry cause to effect.** When a step creates something, a curve draws from the step to the new item as it appears; when a step reads something, the curve runs the other way in a second colour. Arrows fade after a beat and clear on scroll or resize.
-- **State enters at its final size.** New rows, chips and cards arrive at the height they will keep. Nothing grows, reflows or shifts when a label changes; keyed, fixed-height rows.
-- **Output that arrives over time streams from the top.** An answer, a feed or a panel filling in reveals block by block, with the view following, so it reads as live.
-- **Processes have a start and a finish mark.** A running box shows "running", then a finished tick and its real result, not a spinner that is replaced wholesale.
-- **One thing moves at a time.** Stagger entries by a few hundred milliseconds. Simultaneous animations in different panes read as noise.
-- **Nothing opens by itself.** A menu, a file viewer or a tooltip appears only on a click. Auto-opening after an animation reads as a bug.
-- **Respect `prefers-reduced-motion`**, and keep every state reachable with motion off.
+When there is a sequence: the audience steps through it at the presenter's pace, never on scroll; new state enters at its final size; `prefers-reduced-motion` is respected and every state is reachable with motion off. The mechanics (arrows, streaming, stagger, start and finish marks) are in [stage-and-motion.md](stage-and-motion.md).
 
 ## Quick reference
 
 | To convey | Use |
 |---|---|
-| A step created or read something | Flow arrow from the step to the item |
-| Something now exists or changed | A keyed, fixed-height state row, coloured by state, clickable to the real content |
-| One step's work | Input chips → process box with a finished tick → output chips |
-| The outcome of a step | Two or three small counts inline with the step |
-| Output the user watches arrive | Streaming from the top |
+| A finding | One chart titled with the finding, values on the marks |
+| Old way versus new way (only when there is an old way) | The same layout twice, then a numbers table with losses included |
+| A record moving through a pipeline | One real row's fields shown at each stage, counts on the stages |
+| What a new surface does | The surface once, numbered callouts with real values |
+| A tool | Its real controls prefilled with a recorded run |
+| When things happen | A timeline of real dates, today marked |
+| A screen the user meets | The screen large, a callout for what they do and get |
+| Cause and effect in one action | A multi-pane stage ([stage-and-motion.md](stage-and-motion.md)) |
 | Code, SQL or config | Plain-English lines with a toggle to the real text |
-| Old way versus new way | The same layout twice, then a numbers table with losses included |
-| A record moving through a pipeline | One real row's fields shown at each stage |
+| Complex logic or a decision rule | A few lines of loose pseudo-code in the reader's words, real code behind the toggle |
+| Something that is not real data | "Illustrative" on the panel itself |
 
 ## Verify
 
-Headless Chrome can check layout and errors but not timing: see [verifying-motion.md](verifying-motion.md). Tell the user what was not seen and ask them to press Play once before presenting.
+Headless Chrome can check layout and errors but not timing: see [verifying-motion.md](verifying-motion.md). Tell the user what was not seen and, when the page has motion, ask them to press Play once before presenting.
 
 ## Common mistakes
 
 | Mistake | Instead |
 |---|---|
+| A slide deck when nobody asked for slides | A web page or document |
+| Chat window, stage and before/after on every demo | The one centrepiece the content calls for |
+| Reusing the look of a previous demo | Background, palette, type and shape taken from the subject |
+| A dark page because the last page was dark | Light unless the subject itself is dark |
+| Header, facts list and footer on a page about a finding | The chart first; numbers on the chart |
+| Step controls on a page with nothing to step through | No controls, no motion |
 | A section that is a paragraph with a picture beside it | The picture, with a title and labels |
-| Cause in one section, effect three scrolls later | Adjacent panes on one shared timeline |
 | An explanatory paragraph before the first visual | Open on the visual; the sentence goes under it |
-| KPI cards, count-ups, hero taglines | Label/value list under the header |
+| KPI cards, count-ups, hero taglines | Numbers on the visual, or a facts list when the page is about a run |
 | Architecture diagram as the centrepiece | One real instance moving through the system |
-| Jargon in headings, or code hidden entirely | Verbs in headings, real text one click away |
+| Jargon in headings, or code hidden entirely | Plain headings, real text one click away |
 | Animations triggered by scrolling | Presenter-paced steps with controls |
-| Rows that grow when a label is added | Fixed-height keyed rows |
-| A caption restating what the pane shows | Say it once |
+| A caption restating what the visual shows | Say it once |
 | Comparison as a sentence | Same layout twice plus a numbers table |
 | Only the numbers where the new way wins | Every number from both, losses included |
 | An opening that only makes sense after the demo | What it is in the reader's terms, plus one real instance |
