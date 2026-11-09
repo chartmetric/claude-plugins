@@ -48,6 +48,7 @@ claude plugin update cm-harness@chartmetric-tools
 | `multi-repo-pr` | One piece of work spanning several repos: one branch + one PR per repo, cross-linked |
 | `ship-pr` | Finalize session PRs end-to-end: description, assignee = creator, Slack + Asana links (auto-created if missing), reviewer suggestion, PR Preview labels, poll until the preview deploys |
 | `gh-stack` | Manage stacked branches & PRs with the `gh stack` CLI extension: build, navigate, rebase, sync, and merge a chain of dependent PRs, run non-interactively so it never hangs on a prompt |
+| `design-system-sync` | Keep the Chartmetric Design System in Claude Design and the `chartmetric-design-system` repo in step: token edits made on the Claude Design page become a labelled repo PR, and a repo release rebuilds and republishes the Claude Design system (live components, tokens, the web app's Font Awesome icons, Inter) |
 | `rag-add-endpoint` | Add an API endpoint to the Flow AI / Melodi RAG "sitemap" knowledge base: gate on whether a live endpoint exists (else "build the API first"), then edit chartmetric-one's `api-registry.ts` (`flow`) or emit reviewable Postgres SQL (`main`) + a PR, with the activation timeline |
 | `explain-code` | Explain code with an ASCII diagram, a step-by-step walkthrough, a gotcha, and a suggested improvement |
 
