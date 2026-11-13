@@ -1,14 +1,20 @@
 ---
 name: replit-env
-description: Use when working in a Chartmetric repo whose app runs in a Replit workspace and a task needs the repl's own environment — its data-store credentials, interpreter, or installed deps — or needs to run commands there over SSH, sync its git checkout with GitHub, unstick a Replit↔GitHub sync, or reason about production (which SSH cannot reach).
+description: Use when working in a Chartmetric repo whose app runs in a Replit workspace and a task needs the repl's own environment — its data-store credentials, interpreter, or installed deps — or needs to run commands there over SSH or the repl's Shell tab, sync its git checkout with GitHub, or reason about production (which SSH cannot reach). Also use whenever a repl won't sync with GitHub — the Git pane or `git pull` fails with a credentials error or "Repository not found", `--ff-only` refuses because the repl and `origin/main` diverged, or Replit Agent commits conflict with merged PRs, even if the user only says "Replit sync is broken".
 author: tyler@chartmetric.com
 ---
 
 # Replit workspace environments
 
 A Replit workspace is reachable over SSH, checkout at `/home/runner/workspace`, login shell bash.
-Replit is the source of truth and syncs to GitHub. No Chartmetric repo runs on Replit today; this
-skill holds what applies to any repl built there.
+Replit is the source of truth and syncs to GitHub. This skill holds what applies to any repl, not to
+one in particular.
+
+No SSH alias? For a one-off job like a sync recovery, work through the user rather than setting
+one up. Give them each repl-side command block to paste into the repl's Shell tab, and ask for the
+output. Keep the blocks self-contained (start with `cd /home/runner/workspace`), say what output to
+expect, and never have them paste raw secrets. Set up SSH ("First connection" below) when you'll be
+in the repl repeatedly, or the user asks for it.
 
 ## Before touching a repl
 
@@ -17,8 +23,9 @@ Answer these first — each one changes what is safe:
 | Check | How | If yes |
 |-------|-----|--------|
 | Credentials point at prod-shared stores? | Inspect `DATABASE_URL`, ClickHouse, Snowflake, mail creds in the repl's env | Any write, send, or script run hits real customers and data — treat with prod-level caution |
-| `GITHUB_TOKEN` set in env? | `ssh -n <alias> 'test -n "$GITHUB_TOKEN" && echo yes'` | The askpass-shim fetch works; otherwise the bundle transport is the only path |
+| `GITHUB_TOKEN` set in env? | `ssh -n <alias> 'test -n "$GITHUB_TOKEN" && echo yes'` | Over SSH the askpass-shim fetch works; without it, SSH's only path is the bundle transport. The Shell tab doesn't need either, because Replit's own askpass answers there |
 | An auto-commit watcher on the tree? | `git log` on `origin` shows commits like `misc change from replit side` by `cm-replit` | See "Auto-commit watcher" below |
+| Can the repl's shell reach GitHub at all? | `GIT_TERMINAL_PROMPT=0 git fetch origin` in the repl | If it fails, triage the error with `references/replit-sync-recovery.md` before moving any commits |
 
 ## Every repl
 
@@ -70,9 +77,19 @@ them to `origin`. When a repl has one:
 
 ## Sync a repl with GitHub
 
-Read `references/replit-git-transport.md` and follow it, supplying the repl's SSH alias, its branch,
-and whether `GITHUB_TOKEN` is set. It holds the askpass shim, the bundle transport in both
-directions, stale `.git` lock recovery, and the done-when checks.
+Two references, picked by what's wrong:
 
-Replit's own sync failing or hanging is a stale `.git` lock often enough to check that first. Once
-the locks are gone and the workspace is fast-forwarded, hand future syncs back to Replit's UI.
+- **`references/replit-sync-recovery.md`** — sync is stuck or the two sides have drifted. It
+  triages the fetch error (including "Repository not found" from a Replit GitHub App installation
+  that doesn't include the repo). It also resolves a diverged repl through a temporary sync branch:
+  the repl pushes its HEAD, you merge and build locally, and the repl fast-forwards. Start here when
+  the user reports a broken sync.
+- **`references/replit-git-transport.md`** — moving commits when the repl's shell can't
+  authenticate at all (typically over SSH): the askpass shim, the bundle transport in both
+  directions, stale `.git` lock recovery, and the done-when checks. Supply the repl's SSH alias, its
+  branch, and whether `GITHUB_TOKEN` is set.
+
+When Replit's UI sync hangs or fails without an error, the cause is a stale `.git` lock often
+enough to check that first. An explicit `git fetch` error goes to the recovery doc's triage table.
+With no SSH and a repl that can't authenticate, no transport works: fix access first. Once the
+workspace is fast-forwarded, hand future syncs back to Replit's UI.
