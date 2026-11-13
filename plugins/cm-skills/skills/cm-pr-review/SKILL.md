@@ -213,7 +213,7 @@ Then treat every PR as skipped and go to the output contract. **Never** fall bac
 
 ### Attribution block
 
-Maestro opens every review it posts with a `_Requested by @<login> (<email>) via Maestro._` line, so don't write your own requester line. Pass `requester_github_login=<GH_LOGIN>` (resolved at the start of Step 1) so that line @-mentions the user. Prepend only this skill credit to the body:
+Maestro opens every review it posts with a `_Requested by @<GH_LOGIN> via Maestro._` line built from the required `requester_github_login` argument (pass `<GH_LOGIN>`, resolved at the start of Step 1), so don't write your own requester line. Prepend only this skill credit to the body:
 
 ```
 > _Drafted with the [`cm-pr-review`](https://github.com/chartmetric/claude-plugins/tree/main/plugins/cm-skills/skills/cm-pr-review) Claude Code skill. The requester worked with Claude on the analysis before posting._
