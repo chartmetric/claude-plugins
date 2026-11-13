@@ -20,7 +20,7 @@ Every review this skill posts — **approve, request-changes, or comment** — i
 
 ## Single-PR mode
 
-If the args name a PR — a URL like `https://github.com/<owner>/<repo>/pull/<num>` (any trailing `/files`, `/changes`, etc. ignored) or `<owner>/<repo>#<num>` — skip Steps 1–2 and review only that PR. Still resolve `GH_LOGIN` (Step 1's first command) for the attribution block, then continue at Step 3. The PR doesn't need to have requested you, and the org filter doesn't apply.
+If the args name a PR — a URL like `https://github.com/<owner>/<repo>/pull/<num>` (any trailing `/files`, `/changes`, etc. ignored) or `<owner>/<repo>#<num>` — skip Steps 1–2 and review only that PR. Still resolve `GH_LOGIN` (Step 1's first command) for `requester_github_login`, then continue at Step 3. The PR doesn't need to have requested you, and the org filter doesn't apply.
 
 ## Step 1 — Discover PRs
 
@@ -213,25 +213,23 @@ Then treat every PR as skipped and go to the output contract. **Never** fall bac
 
 ### Attribution block
 
-Because the review lands under the bot's name, this block is what tells the author and other reviewers which human drove it. Prepend it to the body before every post:
+Maestro opens every review it posts with a `_Requested by @<GH_LOGIN> via Maestro._` line built from the required `requester_github_login` argument (pass `<GH_LOGIN>`, resolved at the start of Step 1), so don't write your own requester line. Prepend only this skill credit to the body:
 
 ```
-> _Drafted with the [`cm-pr-review`](https://github.com/chartmetric/claude-plugins/tree/main/plugins/cm-skills/skills/cm-pr-review) Claude Code skill. @<GH_LOGIN> initiated the review and worked with Claude on the analysis before posting._
+> _Drafted with the [`cm-pr-review`](https://github.com/chartmetric/claude-plugins/tree/main/plugins/cm-skills/skills/cm-pr-review) Claude Code skill. The requester worked with Claude on the analysis before posting._
 
 ---
 
 <review body>
 ```
 
-`<GH_LOGIN>` is the value resolved at the start of Step 1.
-
 ### Post via the Maestro App tool
 
 Map keys to `submit_pr_review` calls (using the attribution-prefixed body as `body`). Split `<owner>/<repo>` into the `owner` and `repo` arguments and pass the PR `number`:
 
-- `A` → `submit_pr_review(owner=<owner>, repo=<repo>, number=<num>, event="APPROVE", body=<prefixed_body>)`
-- `R` → `submit_pr_review(owner=<owner>, repo=<repo>, number=<num>, event="REQUEST_CHANGES", body=<prefixed_body>)`
-- `C` → `submit_pr_review(owner=<owner>, repo=<repo>, number=<num>, event="COMMENT", body=<prefixed_body>)`
+- `A` → `submit_pr_review(owner=<owner>, repo=<repo>, number=<num>, event="APPROVE", body=<prefixed_body>, requester_github_login=<GH_LOGIN>)`
+- `R` → `submit_pr_review(owner=<owner>, repo=<repo>, number=<num>, event="REQUEST_CHANGES", body=<prefixed_body>, requester_github_login=<GH_LOGIN>)`
+- `C` → `submit_pr_review(owner=<owner>, repo=<repo>, number=<num>, event="COMMENT", body=<prefixed_body>, requester_github_login=<GH_LOGIN>)`
 - `S` → log nothing, move on
 - `Q` → stop the loop. Remaining drafts are dropped (not saved anywhere in v1)
 
