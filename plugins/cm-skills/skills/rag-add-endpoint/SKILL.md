@@ -48,7 +48,7 @@ is in `sitemap_feature_apis`. So "adding an endpoint" almost always means: make 
 |---|---|---|
 | Endpoint origin | Declared in code: `shared/api-registry.ts` | Auto-ingested from **Swagger** by the `Sync_Sitemap_Metadata` DAG (Fridays 00:00 UTC) |
 | How you add | **Edit `api-registry.ts` → PR to chartmetric-one** | Endpoint appears automatically once in Swagger; the **feature + link** is manual |
-| Applied to Postgres by | "Sync to RDS" button in chartmetric-one `/admin` → APIs tab | admini-tool ("Sync to RDS") or reviewable SQL |
+| Applied to Postgres by | Running the SQL from `scripts/generate-sitemap-sql.ts` in CM RDS after the PR deploys | admini-tool ("Sync to RDS") or reviewable SQL |
 | Clean code PR exists? | **Yes** (edit api-registry.ts) | **No** — feature/link is pure data; deliver SQL |
 
 Most "Flow AI" requests are `flow` endpoints — the clean path. `main` endpoints are
@@ -136,6 +136,8 @@ absent — `git clone git@github.com:chartmetric/chartmetric-one.git`; never ski
 - Add to **`sitemapApis`**: `{ apiEndpoint, apiMethod, apiDescription, isInternal, parameters }`
   (only if the endpoint isn't already there). Path params in the endpoint are auto-derived;
   list query/body params explicitly.
+  Only endpoints Flow itself serves (`/api/...` routes in chartmetric-one) belong here; a
+  chartmetric-api endpoint is `main` even when a Flow page uses it, so it takes Step 4b.
 - Add to **`sitemapFeatures`** (if a new feature): a strong `featureName`,
   `featureDescription`, and especially **`featureDescriptionRich`** (this is embedded — make
   it specific: what data, what platforms, what the user would ask). Set `searchText`,
@@ -144,8 +146,9 @@ absent — `git clone git@github.com:chartmetric/chartmetric-one.git`; never ski
 - Add to **`featureApiLinks`**: `{ featureHtmlLabel, apiEndpoint, apiMethod, isUsedForArtistAiInsights }`.
 
 Then generate the SQL for the PR body / response (requirement #3). The committed change is
-**only `api-registry.ts`** — the SQL is for review; it is applied by the admin "Sync to RDS"
-button, not by merging a `.sql` file (`data/seed-sitemap-features.sql` is deprecated):
+**only `api-registry.ts`** — the SQL is run by hand in CM RDS after the PR deploys, not by
+merging a `.sql` file (`data/seed-sitemap-features.sql` is deprecated). There is no admin
+button any more: chartmetric-flow#783 removed the `/admin` APIs tab and its "Sync to RDS".
 
 ```bash
 cd chartmetric-one && npx tsx scripts/generate-sitemap-sql.ts   # prints the full SQL transaction
@@ -155,8 +158,10 @@ If tsx/node isn't available, hand-write the equivalent SQL from `references/sql-
 
 PR (follow the repo's own CLAUDE.md; branch `feat/<short-desc>`), body must include:
 the endpoint, the feature + rich description rationale, the generated SQL, and the
-activation steps from Step 5. Then tell the user to click **"Sync to RDS"** in
-chartmetric-one `/admin` → APIs tab after merge.
+activation steps from Step 5. Then tell the user to run the SQL in CM RDS after the PR
+deploys. Regenerate it from `main` first so it covers every merged registry change. It is one
+transaction that upserts and then **deletes `flow` rows the registry no longer has**, so read
+the `STEP 5` deletes before running it; swapping the final `COMMIT;` for `ROLLBACK;` gives a dry run.
 
 ## Step 4b — MAIN track: reviewable SQL + admini-tool
 
@@ -179,7 +184,7 @@ PR here if the user also wants a melodi-worker/chartmetric-mcp description overr
 
 Adding the rows does not make the endpoint discoverable instantly:
 
-1. Apply to **Postgres** (Sync to RDS / run the SQL).
+1. Apply to **Postgres** (run the generated SQL for `flow`; admini-tool or the SQL for `main`).
 2. **Daily PG→CH sync** mirrors it to ClickHouse (~24h).
 3. **`Update_RAG_Embeddings` DAG (Sundays 00:00 UTC)** embeds the new feature.
 
