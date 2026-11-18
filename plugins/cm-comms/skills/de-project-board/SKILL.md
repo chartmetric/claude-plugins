@@ -51,7 +51,7 @@ For work in any other repo, put the issue in chartmetric-nv-data and use
 |---|---|---|
 | Assignees | GitHub login | The owner. One person. |
 | Status | Todo / In progress / Waiting / Done | See section 4. |
-| Project | EKS platform, Analytics cache, Raw cache, Legacy DAG migration, Link processing, Cost, Observability, NV ingestion, Playlist, Album, Audience, Snowflake | The stream the work belongs to. Ask gkdms99 to add an option rather than forcing a bad fit. |
+| Project | current options (`gh project field-list`) | The workstream the card belongs to. Follow the Project convention below. |
 | Work type | Build / Investigate / Monitor / Ops | Build = new or changed pipeline/code. Investigate = finding a cause or a number. Monitor = watching runs or data after a change. Ops = infra, upgrades, permissions, incidents. |
 | Size | S / M / L | S = 1 day or less. M = 2-3 days. L = more than 3 days or spread over weeks. Measure elapsed work, not lines changed. |
 | Min effort | free text | The shortest honest time if nothing got in the way, e.g. "1 day", "half a day per DAG". |
@@ -62,6 +62,36 @@ For work in any other repo, put the issue in chartmetric-nv-data and use
 | Target date | date | Expected finish. Set it when you start; update it if it slips. For Done cards it is the day of the last merge. Leave empty only when truly unknown. |
 
 Do not use Labels, Milestone or Sub-issues for this board.
+
+### Project convention
+
+A Project is a workstream that runs for weeks and holds several cards. It is
+not a task, a PR or a platform. Always read the current options first; do not
+rely on a list written down somewhere.
+
+Choosing:
+- Pick by what the work changes, not by the tool it touches. Snowflake auth on
+  EKS goes to the EKS platform stream; grants on analytics tables go to Analytics.
+- Platforms, tables and DAGs (Spotify, cm_track_cache) are the Subject in the
+  title, not a Project.
+- If two options fit, pick the one the lead would look under. Reuse an existing
+  option before proposing a new one.
+
+Naming a new option:
+- Name the area of work or the outcome it serves, not a vendor or tool
+  ("Analytics", not "Snowflake"). The exception is a stream whose job is the
+  platform itself (e.g. the EKS platform).
+- 1-3 words, sentence case, no filler words ("project", "work", "misc", "other").
+- No abbreviations the lead would not know.
+
+Changing the list:
+- Add an option only when at least 3 cards are expected in it. Otherwise use the
+  closest existing one.
+- Ask gkdms99 before adding, renaming, merging or deleting an option.
+- Rename with the option id kept (field settings in the UI, or GraphQL
+  updateProjectV2Field passing each option's id). Without the id, every card in
+  that option loses its value.
+- Delete an option only when no card uses it. Move the cards first.
 
 ## 3. Card text
 
