@@ -31,7 +31,7 @@ Use the Asana MCP to create a task on the **Unified CM Tasks** board with sensib
 | Admin Tool | `1208493685092248` |
 | Sales Engineering | `1210241524012353` |
 | Onesheet | `1211537234638035` |
-| Data Assistant | `1211689207392633` |
+| AI Engineering | `1211689207392633` |
 | Chartmetric Lite | `1213406542898351` |
 
 ## Title prefix (required)
@@ -48,7 +48,7 @@ Every title gets a `<TOKEN>: ` prefix. The prefix also picks the Team.
 | `INFRA:` | Infrastructure | `1207534115761476` |
 | `MOBILE:` | Mobile (Native) | `1208423336018659` |
 | `ADMIN:` | Admin Tool | `1208493685092248` |
-| `AI:` | Data Assistant | `1211689207392633` |
+| `AI:` | AI Engineering | `1211689207392633` |
 | `FLOW:` | Product Engineering | `1207603513775115` |
 | `SE:` | Sales Engineering | `1210241524012353` |
 
