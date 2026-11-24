@@ -48,7 +48,7 @@ is in `sitemap_feature_apis`. So "adding an endpoint" almost always means: make 
 |---|---|---|
 | Endpoint origin | Declared in code: `shared/api-registry.ts` | Auto-ingested from **Swagger** by the `Sync_Sitemap_Metadata` DAG (Fridays 00:00 UTC) |
 | How you add | **Edit `api-registry.ts` → PR to chartmetric-one** | Endpoint appears automatically once in Swagger; the **feature + link** is manual |
-| Applied to Postgres by | Running the SQL from `scripts/generate-sitemap-sql.ts` in CM RDS after the PR deploys | admini-tool ("Sync to RDS") or reviewable SQL |
+| Applied to Postgres by | Running the SQL from `scripts/generate-sitemap-sql.ts` in CM RDS after the PR deploys | admini-tool's Facts & Sitemap pages (write to CM RDS directly) or reviewable SQL |
 | Clean code PR exists? | **Yes** (edit api-registry.ts) | **No** — feature/link is pure data; deliver SQL |
 
 Most "Flow AI" requests are `flow` endpoints — the clean path. `main` endpoints are
@@ -159,9 +159,14 @@ If tsx/node isn't available, hand-write the equivalent SQL from `references/sql-
 PR (follow the repo's own CLAUDE.md; branch `feat/<short-desc>`), body must include:
 the endpoint, the feature + rich description rationale, the generated SQL, and the
 activation steps from Step 5. Then tell the user to run the SQL in CM RDS after the PR
-deploys. Regenerate it from `main` first so it covers every merged registry change. It is one
-transaction that upserts and then **deletes `flow` rows the registry no longer has**, so read
-the `STEP 5` deletes before running it; swapping the final `COMMIT;` for `ROLLBACK;` gives a dry run.
+deploys. It is one transaction that upserts and then **deletes `flow` rows the registry no
+longer has** (the generated file's `-- STEP 5: Clean up deprecated rows` section), so give
+these steps:
+
+1. Regenerate the SQL from `main`, so it covers every merged registry change.
+2. Replace the final `COMMIT;` with `ROLLBACK;` and run it as a dry run. Check that each
+   `DELETE` count under `STEP 5` matches the rows you expect to go.
+3. Run it again with `COMMIT;`.
 
 ## Step 4b — MAIN track: reviewable SQL + admini-tool
 
@@ -176,7 +181,8 @@ feature + link is pure Postgres data. Produce reviewable SQL (from
    Swagger sync — if it's missing, the endpoint isn't in Swagger yet → back to Step 2's gate).
 
 Deliver the SQL in the response and tell the user to apply it via **admini-tool** (the
-Sitemap Features page / "Sync to RDS"), which is the supported human path. Only open a code
+Facts & Sitemap pages, e.g. "Add Feature to Site Page", which write to CM RDS directly) or
+by running the SQL in CM RDS. Only open a code
 PR here if the user also wants a melodi-worker/chartmetric-mcp description override
 (`_API_DESCRIPTION_OVERRIDES`) — that's optional polish, not required for discovery.
 
