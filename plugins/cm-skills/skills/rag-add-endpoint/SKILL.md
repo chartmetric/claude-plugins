@@ -147,8 +147,8 @@ absent — `git clone git@github.com:chartmetric/chartmetric-one.git`; never ski
 
 Then generate the SQL for the PR body / response (requirement #3). The committed change is
 **only `api-registry.ts`** — the SQL is run by hand in CM RDS after the PR deploys, not by
-merging a `.sql` file (`data/seed-sitemap-features.sql` is deprecated). There is no admin
-button any more: chartmetric-flow#783 removed the `/admin` APIs tab and its "Sync to RDS".
+merging a `.sql` file (`data/seed-sitemap-features.sql` is deprecated). Flow has no admin
+page or "Sync to RDS" button for this.
 
 ```bash
 cd chartmetric-one && npx tsx scripts/generate-sitemap-sql.ts   # prints the full SQL transaction
