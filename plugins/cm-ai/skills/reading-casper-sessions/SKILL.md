@@ -1,9 +1,12 @@
 ---
 name: reading-casper-sessions
-description: Read a Casper agent session, its transcript and trace, via the session read API. Use when you need to inspect, analyze, or diagnose behavior in a specific Casper session. Use when handed a Casper console session link or if you grab the link yourself from an associated Slack thread.
+description: TEMPORARILY DEPRECATED while the Casper console is down; use reading-casper-sessions-db instead. Read a Casper agent session, its transcript and trace, via the session read API. Use when you need to inspect, analyze, or diagnose behavior in a specific Casper session. Use when handed a Casper console session link or if you grab the link yourself from an associated Slack thread.
 ---
 
 # Reading Casper sessions
+
+> **Temporarily deprecated.** The Casper console is down, so this API returns 503. Use
+> `reading-casper-sessions-db` until the console is back.
 
 The session read API serves one Casper session (header, turns, and trace nodes) over four
 sibling paths split by **scope × detail**. All four take a read-only bearer token or an admin
