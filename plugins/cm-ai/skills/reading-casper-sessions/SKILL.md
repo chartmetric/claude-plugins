@@ -1,79 +1,122 @@
 ---
 name: reading-casper-sessions
-description: Read a Casper agent session, its transcript and trace, via the session read API. Use when you need to inspect, analyze, or diagnose behavior in a specific Casper session. Use when handed a Casper console session link or if you grab the link yourself from an associated Slack thread.
+description: Read a Casper agent session, its transcript and trace, from the casper Postgres schema with Maestro's query_postgres. Use when you need to inspect, analyze, or diagnose behavior in a specific Casper session. Use when handed a Casper console session link or if you grab the link yourself from an associated Slack thread.
 ---
 
 # Reading Casper sessions
 
-The session read API serves one Casper session (header, turns, and trace nodes) over four
-sibling paths split by **scope × detail**. All four take a read-only bearer token or an admin
-console session. Pick a path by how much you need; reach for one of two workflows.
+A session lives in three tables in the `casper` schema: `sessions` (one row), `turns` (one row per
+user request) and `trace_runs` (every trace node, often thousands per session). Read them with
+Maestro's `query_postgres`. It is read-only and needs no token. Every result lands in your context,
+so read the session the lean way: skim it, then pull only the nodes you need.
 
-## Setup
+The session id is `channel:thread_ts`, such as `C05GH9DQAJ3:1795539685.653749`. Take it from a
+console link, or from a Slack thread's channel id and parent `ts`. Replace `<sid>` below with it.
 
-- Token: `CASPER_SESSION_READ_TOKEN`, a read-only bearer. Take it from the shell environment
-  first; fall back to `~/code/secrets.env` if that file exists. If it's still unset after both,
-  stop and tell the user to mint one at https://casper.chartmetric.com/settings, then export it
-  (or drop it in `~/code/secrets.env`).
-- Use `curl`, not WebFetch — WebFetch can't set the auth header, so it 401s.
-- Session id is `channel:thread_ts`; URL-encode the `:` as `%3A`. A console session link
-  works too — strip it down to the id.
+## The node view
 
-```bash
-# Use the token already in your shell env; source ~/code/secrets.env only as a fallback.
-[ -n "$CASPER_SESSION_READ_TOKEN" ] || { [ -f ~/code/secrets.env ] && { set -a; . ~/code/secrets.env; set +a; }; }
-[ -n "$CASPER_SESSION_READ_TOKEN" ] || echo "No token — mint one at https://casper.chartmetric.com/settings"
-BASE='https://casper.chartmetric.com'   # or $CASPER_CONSOLE_URL
-AUTH="Authorization: Bearer $CASPER_SESSION_READ_TOKEN"
-SID='<channel>:<thread_ts>'
-curl -s -H "$AUTH" "$BASE/api/sessions/${SID/:/%3A}/lean"            # skim
-curl -s -H "$AUTH" "$BASE/api/sessions/${SID/:/%3A}/nodes?turn=4&format=md"    # one exchange
-curl -s -H "$AUTH" "$BASE/api/sessions/${SID/:/%3A}/nodes?nodes=3-10"          # nodes (JSON)
-curl -s -H "$AUTH" "$BASE/api/sessions/${SID/:/%3A}/export" -o dump.json       # lossless, for code
+Every node query starts with this CTE. It mirrors the console's session view:
+
+- It drops plumbing nodes. These are successful `chain` wrappers named `model` or `tools`, or ending
+  in `.before_model`, `.after_model`, `.before_agent` or `.after_agent`. That usually removes about
+  three quarters of the rows.
+- It numbers the remaining nodes `n` = 1..M across the whole session, in start-time order.
+- It numbers the turns `turn` = 1..T.
+- It extracts the readable fields: a tool's `inputs` and `output`, and an LLM's `output` text,
+  `reasoning` and `tool_calls`. An LLM's prompt history is never shown.
+
+```sql
+WITH t AS (SELECT id, row_number() OVER (ORDER BY created_at) AS turn
+           FROM casper.turns WHERE session_id = '<sid>'),
+v AS (
+  SELECT row_number() OVER (ORDER BY r.start_time, r.run_id) AS n, t.turn, r.run_id,
+         r.run_type AS type, r.name, r.status,
+         (extract(epoch FROM r.end_time - r.start_time) * 1000)::int AS ms,
+         r.total_tokens AS tokens, r.reasoning_tokens,
+         CASE WHEN r.run_type = 'tool' THEN r.inputs::text END AS inputs,
+         CASE WHEN r.run_type = 'tool' THEN coalesce(r.outputs->>'output', r.outputs::text)
+              WHEN r.run_type = 'llm' THEN r.outputs->'generations'->0->0->'message'->'kwargs'->>'content'
+         END AS output,
+         r.outputs->'generations'->0->0->'message'->'kwargs'->'additional_kwargs'->>'reasoning' AS reasoning,
+         (SELECT string_agg((tc->>'name') || ' ' || (tc->'args')::text, ' | ')
+            FROM jsonb_array_elements(r.outputs->'generations'->0->0->'message'->'kwargs'->'tool_calls') tc
+         ) AS tool_calls,
+         r.error, r.truncated
+  FROM casper.trace_runs r JOIN t ON t.id = r.turn_id
+  WHERE r.session_id = '<sid>'
+    AND NOT (r.run_type = 'chain' AND r.error IS NULL AND coalesce(r.status, 'success') = 'success'
+             AND (r.name IN ('model', 'tools')
+                  OR r.name ~ '\.(before_agent|after_model|before_model|after_agent)$')))
 ```
 
-## The four paths
+## Reads, leanest first
 
-- `/lean` — the whole session, text and node I/O digested to head+tail. The default read:
-  skim the shape, then drill in.
-- `/full` — the whole session, untruncated. Token-heavy; prefer `/nodes` first.
-- `/nodes?<filters>` — specific trace nodes in full detail: a flat list across turns plus a
-  `turns` sidecar. A selector is required — a bare request returns a `missing_selector` 400.
-- `/export` — JSON-only lossless dump, one row per trace node in start_time order,
-  untruncated short of the capture cap. Not for reading by you directly, Have the response written to a file and analyze with code.
+**1. Lean: the session and its turns.** Run this first. Long text is cut to its first 600 and last
+200 characters, with the number of cut characters shown in the middle.
 
-`format=md|json` (json default) applies to `/lean`, `/full`, `/nodes` only. `/export` is
-always JSON.
+```sql
+SELECT row_number() OVER (ORDER BY created_at) AS turn, id AS turn_id, created_at, user_id, status,
+       model, steps_used, cost_usd, error,
+       CASE WHEN length(q) <= 800 THEN q ELSE left(q, 600) || ' …(+' || (length(q) - 800) || ' chars)… ' || right(q, 200) END AS request,
+       CASE WHEN length(a) <= 800 THEN a ELSE left(a, 600) || ' …(+' || (length(a) - 800) || ' chars)… ' || right(a, 200) END AS answer
+FROM casper.turns
+CROSS JOIN LATERAL (SELECT regexp_replace(request_text, '\s+', ' ', 'g') AS q,
+                           regexp_replace(answer_text, '\s+', ' ', 'g') AS a) x
+WHERE session_id = '<sid>' ORDER BY created_at;
+```
 
-Two routes are not the reader's surface — don't reach for them: `/api/sessions/<id>` (the raw
-whole session, a frozen SPA/logging shape, token-heavy) and `/turns/<turn_id>/trace`
-(admin-only, so a bearer token 401s).
+**2. Outline: what ran, with no I/O.** Use it to find the nodes worth reading.
 
-## Two workflows
+```sql
+-- <the node view CTE>
+SELECT n, turn, type, name, status, ms, tokens, reasoning_tokens, error IS NOT NULL AS failed
+FROM v WHERE turn = 2 ORDER BY n LIMIT 200;
+-- or a per-turn summary: SELECT turn, type, count(*), min(n), max(n), sum(ms) FROM v GROUP BY 1, 2 ORDER BY 1, 2;
+```
 
-- **Progressive** — `/lean` to skim, then `/nodes?turn=N` for one exchange under the
-  microscope or `/nodes?nodes=A-B` for specific nodes; `/full` only when you truly need
-  everything.
-- **Thorough** — `curl .../export -o dump.json` and analyze with code (jq/python). Never load
-  the dump into the context window.
+**3. Nodes: chosen nodes with their I/O, cut to the first 400 and last 150 characters.**
 
-## `/nodes` filters
+```sql
+-- <the node view CTE>
+SELECT n, turn, type, name, status, ms, tokens,
+  CASE WHEN length(x.i) <= 550 THEN x.i ELSE left(x.i, 400) || ' …(+' || (length(x.i) - 550) || ' chars)… ' || right(x.i, 150) END AS inputs,
+  CASE WHEN length(x.o) <= 550 THEN x.o ELSE left(x.o, 400) || ' …(+' || (length(x.o) - 550) || ' chars)… ' || right(x.o, 150) END AS output,
+  CASE WHEN length(x.r) <= 550 THEN x.r ELSE left(x.r, 400) || ' …(+' || (length(x.r) - 550) || ' chars)… ' || right(x.r, 150) END AS reasoning,
+  CASE WHEN length(x.c) <= 550 THEN x.c ELSE left(x.c, 400) || ' …(+' || (length(x.c) - 550) || ' chars)… ' || right(x.c, 150) END AS tool_calls,
+  error, truncated
+FROM v CROSS JOIN LATERAL (SELECT regexp_replace(v.inputs, '\s+', ' ', 'g') AS i,
+                                  regexp_replace(v.output, '\s+', ' ', 'g') AS o,
+                                  regexp_replace(v.reasoning, '\s+', ' ', 'g') AS r,
+                                  regexp_replace(v.tool_calls, '\s+', ' ', 'g') AS c) x
+WHERE n BETWEEN 40 AND 50 ORDER BY n;
+```
 
-- `nodes`, `turn` — a value, comma list, or inclusive range (`2-4`). `nodes` wins over `turn`.
-- `type`, `status`, `name` — strings.
-- `min_ms`, `max_ms`, `min_tokens` (in+out), `min_reasoning`, `limit` — ints. An unparseable
-  numeric or selector returns a `bad_filter` 400 rather than silently coercing.
+**4. Full: one node uncut.** Select `inputs, output, reasoning, tool_calls, error` from `v` for a
+single `n`. Do this only after a cut view showed you need the middle.
 
-The response carries the matched nodes (flat, each tagged with its turn), a `turns` sidecar
-(each involved turn's request/answer text, untruncated), and `applied`/`matched`/`returned`
-counts (`matched` before `limit`, `returned` after).
+## Filters
+
+Put these in the `WHERE` of reads 2 and 3. A node query always needs at least one, because the
+whole session won't fit in the result cap or in your context.
+
+- `n = 7`, `n BETWEEN 3 AND 10`, `n IN (3, 9)`
+- `turn = 2`, `turn BETWEEN 2 AND 4`
+- `type = 'tool'` (`llm`, `tool` or `chain`), `name = 'execute'`, `status <> 'success'`, `error IS NOT NULL`
+- `ms >= 10000`, `tokens >= 50000`, `reasoning_tokens >= 2000`
+- `ORDER BY n LIMIT 20`
+
+## Questions about the whole session
+
+Answer these with SQL aggregates over `v`, never by pulling rows. Examples: count tool failures by
+`name`, find the slowest nodes with `ORDER BY ms DESC LIMIT 10`, or sum tokens per turn.
 
 ## Gotchas
 
-- Node ids are session-global view ordinals (1..M in transcript order, after plumbing nodes
-  are pruned) — not `trace_runs` UUIDs, and not the `turn_id` in the trace path.
-- `turn=N` is the 1-based ordinal in the view (each DB exchange splits into a user turn and an
-  agent turn). The `turn_id` in the trace path is the DB primary key — a different number.
-- `truncated: [...]` on a node means the value hit the capture cap at record time; ground
-  truth needs `/export` or psql, not the view.
-- JSON and Markdown render the same view dict.
+- `n` and `turn` come from this query. They match each other across your queries, but they are not
+  `trace_runs.run_id` and not `turns.id`. Read 1 returns `turn_id` (`turns.id`) for joining.
+- `truncated` lists fields that hit the capture cap when the node was recorded. The rest of that
+  value was never stored.
+- A turn with `status = 'running'` and no answer either is still running or was cut off. Check
+  `last_activity_at` in `casper.sessions`.
+- Pass `max_rows` to `query_postgres` to match your `LIMIT`. Maestro caps results and flags them as
+  `truncated`.
