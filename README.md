@@ -71,8 +71,7 @@ Invoked as `/cm-comms:<skill>`, e.g. `/cm-comms:slack-summary`.
 
 | Skill | What it does |
 | --- | --- |
-| `reading-casper-sessions` | Read a Casper agent session — its transcript and trace — via the session read API (`lean` / `full` / `nodes` / `export` views) to inspect, analyze, or diagnose behavior. Temporarily deprecated while the Casper console is down |
-| `reading-casper-sessions-db` | Read the same session (turns, tool calls, trace) from the `casper` Postgres schema with Maestro's `query_postgres`. Use while the console is down |
+| `reading-casper-sessions` | Read a Casper agent session — its transcript and trace — from the `casper` Postgres schema through Maestro, in lean / outline / nodes / full reads, to inspect, analyze, or diagnose behavior |
 | `replit-env` | Generic rules for reaching any Replit workspace over SSH to run commands there, sync its git checkout with GitHub, or unstick a Replit↔GitHub sync — pre-flight checks (prod-shared creds, `GITHUB_TOKEN`, auto-commit watcher), the `ssh -n` gotcha, host-rotation recovery, and the askpass-shim and bundle transports. No Chartmetric repo runs on Replit today |
 
 Invoked as `/cm-ai:<skill>`, e.g. `/cm-ai:reading-casper-sessions`.
@@ -106,8 +105,7 @@ Plugins auto-update from this repo. To add or change a skill, edit `plugins/<plu
 - `clickhouse-benchmark` needs `CLICKHOUSE_HOST` / `CLICKHOUSE_PORT` / `clickhouse_user` / `clickhouse_password` in your shell env
 - `cm-pr-review`, `cm-takehome-review`, `release-notes`, `multi-repo-pr`, `ship-pr`, `rag-add-endpoint`, `asana-task` need the `gh` CLI authenticated (`gh auth status`); `cm-takehome-review` also needs the take-home repos cloned under `~/code/chartmetric/`
 - `rag-add-endpoint` needs read-only DB access (local session + `devin-secrets.env`) for its feasibility checks, and chartmetric-one cloned for the `flow`-endpoint path
-- `reading-casper-sessions-db` needs the Maestro MCP server
-- `reading-casper-sessions` needs a read-only `CASPER_SESSION_READ_TOKEN` in your shell env (mint one at https://casper.chartmetric.com/settings) and `curl`
+- `reading-casper-sessions` needs the Maestro MCP server
 
 ## Contributing
 

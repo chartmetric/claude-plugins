@@ -1,6 +1,6 @@
 {
   "name": "cm-ai",
-  "description": "Chartmetric AI-related skills. Currently: reading-casper-sessions — read a Casper agent session's transcript and trace via the session read API (temporarily deprecated while the console is down); reading-casper-sessions-db — read the same session from the casper Postgres schema through Maestro; replit-env — generic rules for reaching and syncing a Replit workspace over SSH.",
+  "description": "Chartmetric AI-related skills. Currently: reading-casper-sessions — read a Casper agent session's transcript and trace from the casper Postgres schema through Maestro, for inspection and diagnosis; replit-env — generic rules for reaching and syncing a Replit workspace over SSH.",
   "version": "0.3.0",
   "author": {
     "name": "Chartmetric Engineering"
